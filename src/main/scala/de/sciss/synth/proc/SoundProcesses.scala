@@ -87,7 +87,7 @@ object SoundProcesses {
                   val fft = FFT( bufEmpty( 1024 ).id, Mix( in ))
                   val spec = SpecPcile.kr( fft )
                   val smooth = Lag.kr( spec, 10 )
-                  smooth.react( 2 ) { data =>
+                  2f.react( smooth ) { data =>
                      val Seq( freq ) = data
                      println( "GOT: " + freq )
                   }

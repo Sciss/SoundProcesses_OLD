@@ -30,8 +30,8 @@ package de.sciss.synth.proc
 
 import reflect.ClassManifest
 import java.io.{ IOException }
-import de.sciss.synth.{GE}
 import de.sciss.synth.io.AudioFileSpec
+import de.sciss.synth.{Constant, GE}
 
 /**
  *    @version 0.15, 11-Aug-10
@@ -220,13 +220,17 @@ object DSL {
     * proc is running. The scope is inside a `graph { }` block.
     */
    def sampleRate : Double = Proc.local.server.sampleRate
-
+   
    implicit def procToAudioInput( p: Proc ) : ProcAudioInput   = p.audioInput( "in" )
    implicit def procToAudioOutput( p: Proc ) : ProcAudioOutput = p.audioOutput( "out" )
    implicit def procToAudioInOut( p: Proc ) : (ProcAudioInput, ProcAudioOutput) =
       p.audioInput( "in" ) -> p.audioOutput( "out" )
 
-   implicit def enrichGE( ge: GE ) = new RichGE( ge )
+   implicit def enrichGE[ T <% GE ]( ge: T ) = new RichGE( ge )
+   // Warning: avoid naming conflicts with ScalaCollider as they
+   // will produce shadowing of implicit conversions
+//   implicit def enrichFloat2( f: Float )  = new RichGE( Constant( f ))
+//   implicit def enrichGE( ge: GE )        = new RichGE( ge )
 }
 
 trait ProcFactory extends ProcSpec {

@@ -39,9 +39,40 @@ import ugen.{Mix, Impulse}
  * @version 0.10, 29-Aug-10
  */
 class RichGE( ge: GE ) {
-   def react( trig: GE )( fun: Seq[ Double ] => Unit ) {
-      val r = new SynthReactionImpl(  trig, ge, fun )
-      val pb = ProcGraphBuilder.local
+   /**
+    * Uses this graph element as a trigger to which a client code
+    * fragment reacts. A trigger occurs when the signal passes
+    * from non-positive to positive.
+    *
+    * @param   thunk    the code to execute upon receiving the trigger
+    */
+   def react( thunk: => Unit ) {
+      // XXX eventually we could optimize this by
+      // using SendTrig instead of SendReply in this case
+      val r    = new SynthReactionImpl( ge, Constant(0), x => thunk )
+      val pb   = ProcGraphBuilder.local
+      pb.includeReaction( r )
+   }
+
+   /**
+    * Uses this graph element as a trigger to poll values from
+    * a signal and invoke a client function with these sampled values.
+    * A trigger occurs when the signal passes
+    * from non-positive to positive.
+    *
+    * For a monophonic values input, you can unpack the sample with something
+    * like
+    * {{{
+    * trigSig.react( valueSig ) { res => val Seq( value ) = res; ... } 
+    * }}}
+    *
+    * @param   values      the signal (potentially multi-channel) to poll
+    * @param   fun         the function which receives the values sampled
+    *    upon receiving the trigger.
+    */
+   def react( values: GE )( fun: Seq[ Double ] => Unit ) {
+      val r    = new SynthReactionImpl(  ge, values, fun )
+      val pb   = ProcGraphBuilder.local
       pb.includeReaction( r )
    }
 }
