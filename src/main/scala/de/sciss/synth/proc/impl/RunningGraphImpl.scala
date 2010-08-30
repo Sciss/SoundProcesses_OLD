@@ -29,12 +29,12 @@
 package de.sciss.synth.proc.impl
 
 import de.sciss.synth.proc.{ ControlValue, Glide, Instant, ProcAudioBus, ProcControl, ProcRunning, ProcTxn, Ref,
-   RichAudioBus, RichGroup, RichNode, RichSynth, XFade }
+   RichAudioBus, RichGroup, RichNode, RichSynth, TxnPlayer, XFade }
 
 /**
- *    @version 0.11, 03-Aug-10
+ *    @version 0.11, 29-Aug-10
  */
-class RunningGraphImpl( rs: RichSynth, _accMap: Map[ String, AudioBusPlayerImpl ])
+class RunningGraphImpl( rs: RichSynth, _accMap: Map[ String, AudioBusPlayerImpl ], morePlayers: Set[ TxnPlayer ])
 extends ProcRunning {
 
    private val accMapRef = Ref( _accMap )
@@ -58,6 +58,7 @@ extends ProcRunning {
 //      accMapRef().foreach( _._2.player.stop )
 
       accMapRef().foreach( _._2.player.stop )
+      morePlayers.foreach( _.stop )
    }
 
    def controlChanged( ctrl: ProcControl, newValue: ControlValue )( implicit tx: ProcTxn ) {

@@ -35,9 +35,10 @@ trait ProcBuffer {
    def controlName : String
    private[proc] def create( server: Server )( implicit tx: ProcTxn ) : RichBuffer
 
-   private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth ) {
-      rs.synth.onEnd { rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // XXX update RichBuffer fields !
-   }
+   private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) : Unit
+//   {
+//      rs.onEnd { tx => rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // XXX update RichBuffer fields !
+//   }
 
    // ---- scope : graph (ProcGraphBuilder) ----
 
@@ -49,4 +50,9 @@ trait ProcBuffer {
    }
 
    def numChannels : Int
+}
+
+trait ProcSynthReaction {
+   private[proc] def create( rs: RichSynth )( implicit tx: ProcTxn ) : TxnPlayer
+
 }

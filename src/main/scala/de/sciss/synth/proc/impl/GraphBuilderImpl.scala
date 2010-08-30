@@ -3,8 +3,8 @@ package de.sciss.synth.proc.impl
 import collection.breakOut
 import collection.immutable.{ Queue => IQueue }
 import de.sciss.synth.proc.{ Proc, ProcBuffer, ProcGraphBuilder, ProcParam, ProcParamAudioInput,
-   ProcParamAudioOutput, ProcParamFloat, ProcRunning, ProcTxn,
-   RichAudioBus, RichControlBus, RichSynth, RichSynthDef }
+   ProcParamAudioOutput, ProcParamFloat, ProcRunning, ProcSynthReaction, ProcTxn,
+   RichAudioBus, RichControlBus, RichSynth, RichSynthDef, TxnPlayer }
 import de.sciss.synth.{ ControlSetMap, SingleControlSetMap, SynthGraph }
 
 /**
@@ -12,8 +12,9 @@ import de.sciss.synth.{ ControlSetMap, SingleControlSetMap, SynthGraph }
  */
 class GraphBuilderImpl( graph: GraphImpl, val tx: ProcTxn )
 extends EntryBuilderImpl with ProcGraphBuilder {
-   var buffers    = Set.empty[ ProcBuffer ]
-   private var bufCount = 0
+   private var buffers    = Set.empty[ ProcBuffer ]
+   private var reactions  = Set.empty[ ProcSynthReaction ]
+   private var bufCount   = 0
 
    def includeBuffer( b: ProcBuffer ) {
       buffers += b
@@ -30,7 +31,11 @@ extends EntryBuilderImpl with ProcGraphBuilder {
       bufCount += 1
       new BufferCueImpl( unique, path, startFrame )
    }
-   
+
+   def includeReaction( r: ProcSynthReaction ) {
+      reactions += r
+   }
+
    /**
     */
    def play : ProcRunning = {
@@ -42,7 +47,6 @@ extends EntryBuilderImpl with ProcGraphBuilder {
          val server        = p.server
          val rsd           = RichSynthDef( server, g )
          val bufSeq        = buffers.toSeq
-         val bufs          = bufSeq.map( _.create( server ))
 
          var setMaps       = Vector.empty[ ControlSetMap ]  // warning: rs.newMsg doesn't support setn style! XXX
          var accessories   = IQueue.empty[ RichSynth => AudioBusPlayerImpl ]
@@ -85,9 +89,11 @@ extends EntryBuilderImpl with ProcGraphBuilder {
          })
 
          val (target, addAction) = p.runningTarget( false )
-         val bufsZipped = bufSeq.zip( bufs )
+         val bufs          = bufSeq.map( _.create( server ))
+         val bufsZipped    = bufSeq.zip( bufs )
          setMaps ++= bufsZipped.map( tup => SingleControlSetMap( tup._1.controlName, tup._2.buf.id ))
          val rs = rsd.play( target, setMaps, addAction, bufs )
+         val morePlayers   = reactions.map( _.create( rs ))
 
          val accMap: Map[ String, AudioBusPlayerImpl ] = accessories.map( fun => {
             val abp = fun( rs )
@@ -100,7 +106,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
             val (b, rb) = tup
             b.disposeWith( rb, rs )        // XXX should also go in RunningGraphImpl
          }
-         new RunningGraphImpl( rs, accMap )
+         new RunningGraphImpl( rs, accMap, morePlayers )
       }
    }
 }

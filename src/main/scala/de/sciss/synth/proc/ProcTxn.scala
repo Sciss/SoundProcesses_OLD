@@ -36,13 +36,14 @@ import collection.{ breakOut }
 import de.sciss.synth.osc.{OSCSyncedMessage, OSCSend}
 import de.sciss.synth.Server
 /**
- *    @version 0.12, 04-Jul-10
+ *    @version 0.12, 29-Aug-10
  */
 trait ProcTxn {
    import ProcTxn._
 
    def add( msg: OSCMessage with OSCSend, change: Option[ (FilterMode, RichState, Boolean) ], audible: Boolean,
             dependancies: Map[ RichState, Boolean ] = Map.empty, noErrors: Boolean = false ) : Unit
+//   def add( player: TxnPlayer ) : Unit
 
    def beforeCommit( callback: ProcTxn => Unit ) : Unit
    def beforeCommit( callback: ProcTxn => Unit, prio: Int ) : Unit
@@ -98,7 +99,8 @@ object ProcTxn {
       private var entries     = IQueue.empty[ Entry ]
       private var entryMap    = Map.empty[ (RichState, Boolean), Entry ]
       private var stateMap    = Map.empty[ RichState, Boolean ]
-      private var entryCnt    = 0 
+      private var entryCnt    = 0
+//      private var players     = IQueue.empty[ TxnPlayer ]
 
       private class ServerData( val server: Server ) {
          var firstMsgs        = IQueue.empty[ OSCMessage ]
@@ -147,6 +149,7 @@ val server = Server.default // XXX vergación
                   case _ => error( "Timeout" )
                }
             } else {
+//               players.foreach( _.play( tx )) // XXX good spot?
                server ! OSCBundle( msgs: _* ) // XXX eventually audible could have a bundle time
 //               true
             }
@@ -173,6 +176,7 @@ val server = Server.default // XXX vergación
          val datas = serverData.values
          datas.foreach( data => {
             import data._
+//            players.foreach( _.play( tx ))
             if( !secondSent && secondMsgs.nonEmpty ) {
                server ! OSCBundle( secondMsgs: _* )
             }
@@ -191,18 +195,22 @@ val server = Server.default // XXX vergación
             data
          })
 
+//      def add( player: TxnPlayer ) : Unit = syn.synchronized {
+//         players = players enqueue player
+//      }
+
       def add( msg: OSCMessage with OSCSend, change: Option[ (FilterMode, RichState, Boolean) ], audible: Boolean,
                dependancies: Map[ RichState, Boolean ], noError: Boolean = false ) : Unit = syn.synchronized {
 
          if( verbose ) println( "TXN ADD : " + (msg, change, audible, dependancies, noError) )
 
          def processDeps : Entry = {
-            dependancies.foreach( tup => {
+            dependancies foreach { tup =>
                val (state, value) = tup
                if( !stateMap.contains( state )) {
                   stateMap += state -> state.get( tx )
                }
-            })
+            }
             val entry = Entry( entryCnt, msg, change, audible, dependancies, noError )
             entryCnt += 1
             entries = entries.enqueue( entry )

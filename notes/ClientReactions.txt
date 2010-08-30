@@ -68,3 +68,127 @@ val x = gen {
 which is reasonably concise.
 // the elimination of "implicit t" can come later by using a TxnLocal which returns the Txn itself
 
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+Sampling the server (29-Aug-10)
+
+diff {
+   graph { in =>
+      val b = bufEmpty( 1024 )
+      val spec = SpecPcile.kr( FFT( b, Mix( in )))
+      val lag  = Lag.kr( spec, 5 )
+      val trig = Impulse.kr( 1 )
+      spec.react( trig ) { data =>
+         val Seq( pcile ) = data
+         ...
+      }
+   }
+}
+
+or even spec.react( 1 ) { ... } to automatically create a regular trigger
+
+this poses the question whether "diff" is a good name? alternatives:
+- "sink"
+- "analyse"
+- "grab"
+- "collect"
+- "capture" // not so bad
+- "catch" (taken)
+
+gen / filter / capture
+
+alternatives for filter:
+- alter
+- mutate // nice
+- translate
+- transfer
+
+generate( "test" ) {
+   graph {
+
+   }
+}
+
+mutate( "test" ) {
+
+}
+
+capture( "out" ) {
+
+}
+
+::: or
+
+proc( "gen" ) {
+   graph { SinOsc.ar }
+}
+
+proc( "filter ") {
+   graph { in => in * SinOsc.ar }
+}
+
+proc( "diff" ) {
+   graph { in => Out.ar( 0, in ); no_output }  // ugly
+}
+
+--> can't we make the ZeroOutUGens ar and kr methods return
+something more specific than GE?
+--> if so, are there corner cases (Output UGens which are
+not ZeroOutUGen but return some convenient shit)?
+   - DiskOut is an example
+   - therefore, there is no way to securely derive the intent
+     of using a particular UGen as the result of the graph function!
+
+:::: thus : better to capture intent through different naming such
+as generate / mutate / capture (those are ok, as they are all from latin; filter is a bit less obvious)
+
+how about in / thru / out ?
+utter / translate / listen
+sound / translate / listen
+generate / mutate / capture are more technical, but maybe more abstract (listen might produce the wrong impression that a signal will be made audible?)
+
+or more than the three:
+
+generate
+mutate :: intercept  // where mutate corresponds to a "function" and intercept to a "side-effect"
+diffuse :: capture   // where diffuse means something becomes audible, and capture is a black-box
+
+intercept might need a better name // generate might get a cousin, too
+- mutate :: monitor?
+- mutate :: divert?
+- generate :: inject
+
+inject( "mic" ) { ... }
+generate( "noise" ) { ... }
+mutate( "granule" ) { ... }
+intercept( "trigger" ) { ... }
+diffuse( "spkr" ) { ... }
+capture( "record" ) { ... }
+
+[[ combinations?
+- mutate and generate
+- mutate and inject
+- mutate and intercept
+- capture and diffuse
+]]
+
+or proc( "mic" ) { ... } describeAs injection
+... very verbose
+
+::: anyway, we can determine whether a graph function uses input or not, thus
+we can distinguish between inject/generate and mutate/intercept, so the
+technical redundancy is purely for additional semantics
+
+////
+interestingly, there seems to be little literature about the taxonomy of
+describing the way sound is produced, transformed etc.
+; for instance : Ariza, NAVIGATING THE LANDSCAPE OF COMPUTER AIDED ALGORITHMIC COMPOSITION SYSTEMS...
+remains on the technical level
+; for instance : automatic music retrieval etc. just uses content based tags,
+  but has no system of abstract notions regarding treatment of sound
+- keywords: sound, conceptualization, taxonomy, computer music, notion, reasoning, phenomenology, rhetoric
+- probably find something in On Sonic Art?
+- maybe truax acoustic communication?
+- also maybe in schaeffer
+most deal with the perception of the sound, not the description of the sound processes
+; e.g. landy - understanding the art of sound doesn't talk at all about making music
+; we want to describe what we _do with_ sound

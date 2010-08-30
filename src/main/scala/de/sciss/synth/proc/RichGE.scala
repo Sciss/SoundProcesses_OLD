@@ -1,6 +1,6 @@
 /*
- *  ProcGraph.scala
- *  (ScalaCollider-Proc)
+ *  RichGE.scala
+ *  (SoundProcesses)
  *
  *  Copyright (c) 2010 Hanns Holger Rutz. All rights reserved.
  *
@@ -28,22 +28,20 @@
 
 package de.sciss.synth.proc
 
-trait ProcGraph extends ProcEntry
-object ProcGraphBuilder extends ThreadLocalObject[ ProcGraphBuilder ] {
-   override def use[ U ]( obj: ProcGraphBuilder )( thunk: => U ) : U = {
-      val old = tl.get()
-      tl.set( obj )
-      try {
-         ProcEntryBuilder.use( obj )( thunk )  // XXX bit stupid the nesting
-      } finally {
-         tl.set( old )
-      }
-   }
-}
+import de.sciss.synth
+import de.sciss.synth.{Constant, GE, ugen}
+import impl.SynthReactionImpl
+import ugen.{Mix, Impulse}
 
-trait ProcGraphBuilder extends ProcEntryBuilder {
-   def includeBuffer( b: ProcBuffer ) : Unit
-   def bufCue( path: String, startFrame: Long ) : ProcBuffer
-   def bufEmpty( numFrames: Int, numChannels: Int ) : ProcBuffer
-   def includeReaction( r: ProcSynthReaction ) : Unit
+/**
+ * Enrichment for graph elements.
+ *
+ * @version 0.10, 29-Aug-10
+ */
+class RichGE( ge: GE ) {
+   def react( trig: GE )( fun: Seq[ Double ] => Unit ) {
+      val r = new SynthReactionImpl(  trig, ge, fun )
+      val pb = ProcGraphBuilder.local
+      pb.includeReaction( r )
+   }
 }

@@ -225,6 +225,8 @@ object DSL {
    implicit def procToAudioOutput( p: Proc ) : ProcAudioOutput = p.audioOutput( "out" )
    implicit def procToAudioInOut( p: Proc ) : (ProcAudioInput, ProcAudioOutput) =
       p.audioInput( "in" ) -> p.audioOutput( "out" )
+
+   implicit def enrichGE( ge: GE ) = new RichGE( ge )
 }
 
 trait ProcFactory extends ProcSpec {

@@ -39,6 +39,7 @@ object SoundProcesses {
          case "--test2" => test2
          case "--test3" => test3
          case "--test4" => test4
+         case "--test5" => test5
          case _ =>
             printInfo
             System.exit( 1 )
@@ -69,6 +70,35 @@ object SoundProcesses {
 //      val topo13 = topo12.removeVertex( "D" )
 //      println( "done" )
 //   }
+
+   def test5 {
+      import DSL._
+      import de.sciss.synth._
+      import de.sciss.synth.ugen._
+      import ProcTxn.{ atomic => t }
+
+      Server.test { s =>
+         ProcDemiurg.addServer( s )
+         s.dumpOSC(1)
+         t { implicit tx =>
+            val p = (gen( "test" ) {
+               graph {
+                  val in = In.ar( NumOutputBuses.ir, 2 )
+                  val fft = FFT( bufEmpty( 1024 ).id, Mix( in ))
+                  val spec = SpecPcile.kr( fft )
+                  val smooth = Lag.kr( spec, 10 )
+                  smooth.react( 2 ) { data =>
+                     val Seq( freq ) = data
+                     println( "GOT: " + freq )
+                  }
+                  0 // in
+               }
+            }).make
+            p.play
+         }
+         println( "Ok" )
+      }
+   }
 
    def test2 {
       import DSL._

@@ -29,7 +29,7 @@
 package de.sciss.synth.proc.impl
 
 import de.sciss.synth.{Buffer, Server}
-import de.sciss.synth.proc.{AudioFileCache, RichBuffer, ProcTxn, ProcBuffer}
+import de.sciss.synth.proc.{AudioFileCache, RichBuffer, RichSynth, ProcTxn, ProcBuffer}
 
 /**
  *    @version 0.11, 19-Jul-10
@@ -46,6 +46,10 @@ class BufferEmptyImpl( val uniqueID: Int, numFrames: Int, val numChannels: Int )
       rb.alloc( numFrames, numChannels )
       rb.zero // XXX actually needed? to satisfy ProcTxn yes, but technically...?
       rb
+   }
+
+   private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) {
+      rs.onEnd { tx => rb.server ! rb.buf.freeMsg } // XXX update RichBuffer fields !
    }
 }
 
@@ -67,5 +71,9 @@ class BufferCueImpl( val uniqueID: Int, path: String, startFrame: Long ) extends
          case e => e.printStackTrace()
          1  // XXX what should we do? --> FAIL
       }
+   }
+
+   private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) {
+      rs.onEnd { tx => rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // XXX update RichBuffer fields !
    }
 }
