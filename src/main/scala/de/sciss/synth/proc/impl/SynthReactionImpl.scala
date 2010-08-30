@@ -31,7 +31,7 @@ extends ProcSynthReaction {
    private[proc] def create( rs: RichSynth )( implicit tx: ProcTxn ) : TxnPlayer = {
       val nodeID     = rs.node.id
       val resp       = OSCResponder {
-         case OSCMessage( "/$react", nodeID, replyID, floats @ _* ) => {
+         case OSCMessage( "/$react", `nodeID`, `replyID`, floats @ _* ) => {
             val doubles = floats.map( _.asInstanceOf[ Float ].toDouble )
             fun( doubles )
          }
