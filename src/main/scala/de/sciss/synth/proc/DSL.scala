@@ -80,6 +80,10 @@ object DSL {
       res
    }
 
+   def factory( name: String )( implicit tx: ProcTxn ) : ProcFactory = {
+      ProcDemiurg.factories.find( _.name == name ).get // XXX should have a set maybe
+   }
+
    /**
     * Performs a code block where all
     * transitions are considered instantly.
