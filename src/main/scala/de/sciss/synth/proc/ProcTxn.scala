@@ -34,7 +34,7 @@ import collection.immutable.{ IndexedSeq => IIdxSeq, IntMap, Queue => IQueue }
 import collection.{ breakOut }
 import de.sciss.synth.osc.{OSCSyncedMessage, OSCSend}
 import de.sciss.synth.Server
-import actors.{Actor, Futures}
+import actors.{DaemonActor, Actor, Futures}
 
 /**
  *    @version 0.12, 29-Aug-10
@@ -69,8 +69,21 @@ object ProcTxn {
 //   private val localVar = new ThreadLocal[ ProcTxn ]
 //   def local : ProcTxn = localVar.get
 
+   private case class Fun( fun: () => Unit )
+
+   private val actor = {
+      val res = new DaemonActor {
+         def act { loop { react {
+            case Fun( f ) => f()
+         }}}
+      }
+      res.start
+      res
+   }
+
    def spawnAtomic( block: ProcTxn => Unit ) {
-      Actor.actor( atomic( block ))
+//      Actor.actor( atomic( block ))
+      actor ! Fun( () => atomic( block ))
    }
 
    def atomic[ Z ]( block: ProcTxn => Z ) : Z = STM.atomic { implicit t =>
