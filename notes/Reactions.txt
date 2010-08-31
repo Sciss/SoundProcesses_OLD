@@ -1,0 +1,3 @@
+30-Aug-10
+
+der fall, daß eine factory für mehrere plates verwendet wird, und die eigentlich jeweils eine andere reaction bräuchten, bedeutet, daß reactions eigentlich wie pControl oder pAudioIn interfaces nach außen sein sollten, an die sich listener zur runtime ankoppeln können.

@@ -63,18 +63,33 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
    private val onEndFuns   = Ref( IQueue.empty[ Function1[ ProcTxn, Unit ]])
 
    // ---- constructor ----
-   node.onEnd {
-      ProcTxn.atomic { implicit tx =>
-         val wasOnline  = isOnline.swap( false )
-         val funs       = onEndFuns.swap( IQueue.empty )
-         funs.foreach( f => try {
-            f( tx )
-         } catch { case e => e.printStackTrace })
-      }
-   }
+//   node.onEnd {
+//      ProcTxn.spawnAtomic { implicit tx =>
+//         val wasOnline  = isOnline.swap( false )
+//         val funs       = onEndFuns.swap( IQueue.empty )
+//         funs.foreach( f => try {
+//            f( tx )
+//         } catch { case e => e.printStackTrace })
+//      }
+//   }
 
    def onEnd( fun: ProcTxn => Unit )( implicit tx: ProcTxn ) {
-      onEndFuns.transform( _ enqueue fun )
+      onEndFuns transform { queue =>
+         if( queue.isEmpty ) node.onEnd {
+            ProcTxn.spawnAtomic { implicit tx =>
+// since we are now executing the txn only when there are client
+// onEnd functions, it doesn't make sense to re-set the isOnline.
+// i don't think it should be used anyways, as nodes are
+// better created anew each time instead of reusing old ids.
+//               val wasOnline  = isOnline.swap( false )
+               val funs       = onEndFuns.swap( IQueue.empty )
+               funs.foreach( f => try {
+                  f( tx )
+               } catch { case e => e.printStackTrace })
+            }
+         }
+         queue enqueue fun
+      }
    }
 
    def node: Node

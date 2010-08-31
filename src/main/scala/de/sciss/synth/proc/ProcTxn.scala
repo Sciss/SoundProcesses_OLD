@@ -29,12 +29,13 @@
 package de.sciss.synth.proc
 
 import de.sciss.osc.{ OSCBundle, OSCMessage }
-import actors.{ Futures }
 import edu.stanford.ppl.ccstm.{ STM, Txn }
 import collection.immutable.{ IndexedSeq => IIdxSeq, IntMap, Queue => IQueue }
 import collection.{ breakOut }
 import de.sciss.synth.osc.{OSCSyncedMessage, OSCSend}
 import de.sciss.synth.Server
+import actors.{Actor, Futures}
+
 /**
  *    @version 0.12, 29-Aug-10
  */
@@ -67,6 +68,10 @@ object ProcTxn {
 
 //   private val localVar = new ThreadLocal[ ProcTxn ]
 //   def local : ProcTxn = localVar.get
+
+   def spawnAtomic( block: ProcTxn => Unit ) {
+      Actor.actor( atomic( block ))
+   }
 
    def atomic[ Z ]( block: ProcTxn => Z ) : Z = STM.atomic { implicit t =>
       val tx = new Impl
@@ -146,7 +151,7 @@ val server = Server.default // XXX vergación
                // XXX should use heuristic for timeouts
                Futures.awaitAll( 10000L, fut ) match {
                   case List( Some( true )) =>
-                  case _ => error( "Timeout" )
+                  case _ => fut.revoke; error( "Timeout" )
                }
             } else {
 //               players.foreach( _.play( tx )) // XXX good spot?
