@@ -3,7 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="f73d71e1-17e4-441e-b380-776f21955f0b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcTxn.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcTxn.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/GraphBuilderImpl.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/GraphBuilderImpl.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichObject.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichObject.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/DSL.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/DSL.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BufferImpl.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BufferImpl.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcGraph.scala" afterPath="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcGraph.scala" />
     </list>
     <ignored path=".idea/workspace.xml" />
     <ignored path="SoundProcesses.iws" />
@@ -78,46 +82,37 @@
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="SynthReactionImpl.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/SynthReactionImpl.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="34" column="56" selection-start="1371" selection-end="1371" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DSL.scala" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="DSL.scala" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/DSL.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="83" column="6" selection-start="2599" selection-end="2599" vertical-scroll-proportion="0.0">
+            <state line="228" column="52" selection-start="7929" selection-end="7929" vertical-scroll-proportion="0.6353741">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ProcTxn.scala" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcTxn.scala">
+      <file leaf-file-name="ProcGraph.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcGraph.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="86" column="4" selection-start="2729" selection-end="2729" vertical-scroll-proportion="0.6938776">
+            <state line="49" column="12" selection-start="1658" selection-end="1775" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="build.properties" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/project/build.properties">
+      <file leaf-file-name="GraphBuilderImpl.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/GraphBuilderImpl.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="20" selection-start="146" selection-end="146" vertical-scroll-proportion="0.0">
+            <state line="11" column="27" selection-start="518" selection-end="518" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="RichObject.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichObject.scala">
+      <file leaf-file-name="BufferImpl.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BufferImpl.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="92" column="4" selection-start="3398" selection-end="3398" vertical-scroll-proportion="0.0">
+            <state line="90" column="0" selection-start="3169" selection-end="3169" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -168,18 +163,18 @@
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/FactoryImpl.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/ProcImpl.scala" />
         <option value="$PROJECT_DIR$/project/build/SoundProcesses.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcGraph.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/RunningGraphImpl.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/GraphBuilderImpl.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcBuffer.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BufferImpl.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichGE.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/SoundProcesses.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/SynthReactionImpl.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/DSL.scala" />
-        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichObject.scala" />
         <option value="$PROJECT_DIR$/project/build.properties" />
         <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcTxn.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcGraph.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichObject.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BufferImpl.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/GraphBuilderImpl.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/DSL.scala" />
       </list>
     </option>
   </component>
@@ -668,7 +663,7 @@
     <supportedVersion>125</supportedVersion>
   </component>
   <component name="ToolWindowManager">
-    <frame x="251" y="135" width="1396" height="878" extended-state="0" />
+    <frame x="93" y="338" width="1396" height="878" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -726,11 +721,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcGraph.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="47" column="53" selection-start="1655" selection-end="1655" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BusPlayerImpl.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="4" column="11" selection-start="105" selection-end="105" vertical-scroll-proportion="0.0" />
@@ -746,19 +736,9 @@
         <state line="69" column="7" selection-start="2716" selection-end="2716" vertical-scroll-proportion="0.3319149" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BufferImpl.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="75" column="89" selection-start="2587" selection-end="2587" vertical-scroll-proportion="1.1938776" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcBuffer.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="37" column="89" selection-start="1286" selection-end="1286" vertical-scroll-proportion="0.33673468" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/GraphBuilderImpl.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="94" column="57" selection-start="4008" selection-end="4008" vertical-scroll-proportion="0.38577586" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/RunningGraphImpl.scala">
@@ -769,16 +749,6 @@
     <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/SynthReactionImpl.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="34" column="56" selection-start="1371" selection-end="1371" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/DSL.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="83" column="6" selection-start="2599" selection-end="2599" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichObject.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="92" column="4" selection-start="3398" selection-end="3398" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcWorld.scala">
@@ -796,9 +766,23 @@
         <state line="77" column="23" selection-start="2852" selection-end="2852" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcGraph.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="12" selection-start="1658" selection-end="1775" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/RichObject.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="84" column="48" selection-start="3198" selection-end="3198" vertical-scroll-proportion="1.1836735">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/project/build.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="20" selection-start="146" selection-end="146" vertical-scroll-proportion="0.0">
+        <state line="5" column="20" selection-start="146" selection-end="146" vertical-scroll-proportion="0.10204082">
           <folding />
         </state>
       </provider>
@@ -806,6 +790,27 @@
     <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/ProcTxn.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="86" column="4" selection-start="2729" selection-end="2729" vertical-scroll-proportion="0.6938776">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/BufferImpl.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="90" column="0" selection-start="3169" selection-end="3169" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/impl/GraphBuilderImpl.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="11" column="27" selection-start="518" selection-end="518" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/de/sciss/synth/proc/DSL.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="228" column="52" selection-start="7929" selection-end="7929" vertical-scroll-proportion="0.6353741">
           <folding />
         </state>
       </provider>

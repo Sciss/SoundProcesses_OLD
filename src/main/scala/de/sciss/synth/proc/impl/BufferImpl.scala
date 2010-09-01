@@ -30,6 +30,7 @@ package de.sciss.synth.proc.impl
 
 import de.sciss.synth.{Buffer, Server}
 import de.sciss.synth.proc.{AudioFileCache, RichBuffer, RichSynth, ProcTxn, ProcBuffer}
+import de.sciss.synth.io.{AudioFileType, SampleFormat}
 
 /**
  *    @version 0.11, 19-Jul-10
@@ -71,6 +72,21 @@ class BufferCueImpl( val uniqueID: Int, path: String, startFrame: Long ) extends
          case e => e.printStackTrace()
          1  // XXX what should we do? --> FAIL
       }
+   }
+
+   private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) {
+      rs.onEnd { tx => rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // XXX update RichBuffer fields !
+   }
+}
+
+class BufferRecordImpl( val uniqueID: Int, path: String, val numChannels: Int,
+                        fileType: AudioFileType, sampleFormat: SampleFormat ) extends BufferImpl {
+   def create( server: Server )( implicit tx: ProcTxn ) : RichBuffer = {
+      val b = Buffer( server )
+      val rb = RichBuffer( b )
+      rb.alloc( 32768, numChannels )
+      rb.record( path, fileType, sampleFormat )
+      rb
    }
 
    private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) {

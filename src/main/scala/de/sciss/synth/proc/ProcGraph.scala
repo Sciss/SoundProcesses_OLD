@@ -28,6 +28,8 @@
 
 package de.sciss.synth.proc
 
+import de.sciss.synth.io.{AudioFileType, SampleFormat}
+
 trait ProcGraph extends ProcEntry
 object ProcGraphBuilder extends ThreadLocalObject[ ProcGraphBuilder ] {
    override def use[ U ]( obj: ProcGraphBuilder )( thunk: => U ) : U = {
@@ -45,5 +47,6 @@ trait ProcGraphBuilder extends ProcEntryBuilder {
    def includeBuffer( b: ProcBuffer ) : Unit
    def bufCue( path: String, startFrame: Long ) : ProcBuffer
    def bufEmpty( numFrames: Int, numChannels: Int ) : ProcBuffer
+   def bufRecord( path: String, numChannels: Int, fileType: AudioFileType, sampleFormat: SampleFormat ) : ProcBuffer
    def includeReaction( r: ProcSynthReaction ) : Unit
 }

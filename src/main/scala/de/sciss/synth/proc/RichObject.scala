@@ -33,9 +33,10 @@ import collection.immutable.{ Queue => IQueue }
 import ProcTxn._
 import de.sciss.synth.{ addToHead, AddAction, Buffer, ControlABusMap, ControlKBusMap, ControlSetMap,
    Group, Node, Server, Synth, SynthDef, SynthGraph }
+import de.sciss.synth.io.{AudioFileType, SampleFormat}
 
 /**
- *    @version 0.11, 19-Jul-10
+ *    @version 0.11, 01-Sep-10
  */
 trait RichObject { def server: Server }
 
@@ -51,6 +52,11 @@ case class RichBuffer( buf: Buffer ) extends RichObject {
 
    def cue( path: String, startFrame: Int = 0 )( implicit tx: ProcTxn ) {
       tx.add( buf.cueMsg( path, startFrame ), Some( (Always, hasContent, true) ), false, Map( isOnline -> true ))
+   }
+
+   def record( path: String, fileType: AudioFileType, sampleFormat: SampleFormat )( implicit tx: ProcTxn ) {
+      tx.add( buf.writeMsg( path, fileType, sampleFormat, 0, 0, true ),
+         Some( (Always, hasContent, true) ), false, Map( isOnline -> true )) // hasContent is a bit misleading...
    }
 
    def zero( implicit tx: ProcTxn ) {

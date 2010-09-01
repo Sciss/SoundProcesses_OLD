@@ -6,9 +6,10 @@ import de.sciss.synth.proc.{ Proc, ProcBuffer, ProcGraphBuilder, ProcParam, Proc
    ProcParamAudioOutput, ProcParamFloat, ProcRunning, ProcSynthReaction, ProcTxn,
    RichAudioBus, RichControlBus, RichSynth, RichSynthDef, TxnPlayer }
 import de.sciss.synth.{ ControlSetMap, SingleControlSetMap, SynthGraph }
+import de.sciss.synth.io.{AudioFileType, SampleFormat}
 
 /**
- *    @version 0.12, 03-Aug-10
+ *    @version 0.12, 01-Sep-10
  */
 class GraphBuilderImpl( graph: GraphImpl, val tx: ProcTxn )
 extends EntryBuilderImpl with ProcGraphBuilder {
@@ -30,6 +31,12 @@ extends EntryBuilderImpl with ProcGraphBuilder {
       val unique = bufCount
       bufCount += 1
       new BufferCueImpl( unique, path, startFrame )
+   }
+
+   def bufRecord( path: String, numChannels: Int, fileType: AudioFileType, sampleFormat: SampleFormat ) : ProcBuffer = {
+      val unique = bufCount
+      bufCount += 1
+      new BufferRecordImpl( unique, path, numChannels, fileType, sampleFormat )
    }
 
    def includeReaction( r: ProcSynthReaction ) {

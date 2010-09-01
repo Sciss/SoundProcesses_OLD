@@ -30,8 +30,8 @@ package de.sciss.synth.proc
 
 import reflect.ClassManifest
 import java.io.{ IOException }
-import de.sciss.synth.io.AudioFileSpec
 import de.sciss.synth.{Constant, GE}
+import de.sciss.synth.io.{SampleFormat, AudioFileType, AudioFileSpec}
 
 /**
  *    @version 0.15, 11-Aug-10
@@ -209,15 +209,26 @@ object DSL {
    // ---- scope : graph (ProcGraphBuilder) ----
 
    /**
+    * Creates a buffer and prepares it for streaming
+    * via `DiskIn` or `VDiskIn`.
     * The scope is inside a `graph { }` block.
     */
    def bufCue( path: String, startFrame: Long = 0L ) : ProcBuffer =
       ProcGraphBuilder.local.bufCue( path, startFrame )
    /**
+    * Creates an empty buffer.
     * The scope is inside a `graph { }` block.
     */
    def bufEmpty( numFrames: Int, numChannels: Int = 1 ) : ProcBuffer =
       ProcGraphBuilder.local.bufEmpty( numFrames, numChannels )
+   /**
+    * Creates a buffer and prepares it for writing
+    * via `DiskOut`.
+    * The scope is inside a `graph { }` block.
+    */
+   def bufRecord( path: String, numChannels: Int = 1, fileType: AudioFileType = AudioFileType.AIFF,
+                  sampleFormat: SampleFormat = SampleFormat.Float ) : ProcBuffer =
+      ProcGraphBuilder.local.bufRecord( path, numChannels, fileType, sampleFormat )
 
    /**
     * Returns the sample-rate of the server on which the enclosing
