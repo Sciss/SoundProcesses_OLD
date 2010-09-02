@@ -179,6 +179,8 @@ xfade    xfade    xfade
 
    def isMapable = _rate != scalar
    def canMap( aout: ProcAudioOutput )( implicit tx: ProcTxn ) : Boolean = isMapable && !isMapped
+
+   override def toString = "control<" + name + ">"
 }
 
 trait ControlMappingImpl /* extends ControlMapping*/ {
