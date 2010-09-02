@@ -28,17 +28,16 @@
 
 package de.sciss.synth.proc
 
-import reflect.ClassManifest
 import java.io.{ IOException }
-import de.sciss.synth.{Constant, GE}
+import de.sciss.synth.GE
 import de.sciss.synth.io.{SampleFormat, AudioFileType, AudioFileSpec}
 
 /**
  *    @version 0.15, 11-Aug-10
  */
 object DSL {
-   private val cmGE     = ClassManifest.fromClass( classOf[ GE ])
-   private val cmUnit   = ClassManifest.Unit
+//   private val cmGE     = ClassManifest.fromClass( classOf[ GE ])
+//   private val cmUnit   = ClassManifest.Unit
 
    // ---- scope : anywhere ----
 

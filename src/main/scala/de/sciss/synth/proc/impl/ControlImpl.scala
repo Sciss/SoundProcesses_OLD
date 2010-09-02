@@ -97,6 +97,7 @@ xfade    xfade    xfade
                         case `audio`   => new ControlAGliding( ctrl, startNorm, targetNorm, glide )
                         case _ => error( "Cannot glide rate " + _rate )
                      }
+                     newCG.play // XXX correct here?
                      Some( ControlValue( newValue, Some( newCG )))
                   } else None
                }
@@ -130,6 +131,7 @@ xfade    xfade    xfade
                      case `audio`   => new ControlAGliding( ctrl, startNorm, targetNorm, glide )
                      case _ => error( "Cannot glide rate " + _rate )
                   }
+                  newCG.play // XXX correct here?
                   Some( ControlValue( newValue, Some( newCG )))
                }
             }
@@ -141,7 +143,10 @@ xfade    xfade    xfade
       })
    }
 
-   private[proc] def glidingDone( implicit tx: ProcTxn ) { v = cv.target } 
+   private[proc] def glidingDone( implicit tx: ProcTxn ) {
+//println( "Gliding done " + this )
+      v = cv.target
+   }
 
    def map( aout: ProcAudioOutput )( implicit tx: ProcTxn ) : ControlABusMapping = {
       val oldCV   = valueRef()
@@ -191,7 +196,7 @@ trait ControlMappingImpl /* extends ControlMapping*/ {
    def name    = ctrl.name + "#map"
 
    def stop( implicit tx: ProcTxn ) {
-println( "ControlMappingImpl.stop" )
+//println( "ControlMappingImpl.stop" )
       synthRef.swap( None ).foreach( _.free( true ))
    }
 
@@ -227,11 +232,13 @@ extends ControlGliding with ControlMappingImpl {
 //      val oldSynth = synth.swap( Some( rs ))
 //      addMapBusConsumers   // requires that synth has been assigned!
 //      oldSynth.foreach( _.free( true ))
+//println( "Gliding play " + ctrl )
 
-      rs.onEnd { tx0 =>
-         synth( tx0 ).foreach( rs2 => if( rs == rs2 ) {
+      rs.onEnd { implicit tx =>
+//println( "Gliding end " + ctrl + " ; " + synth + " / " + rs )
+         synth.foreach( rs2 => if( rs == rs2 ) {
 //            synth.set( None )( tx0 )
-            ctrl.glidingDone( tx0 )  // invokes stop and hence removeMapBusConsumers!
+            ctrl.glidingDone  // invokes stop and hence removeMapBusConsumers!
          })
       }
    }
