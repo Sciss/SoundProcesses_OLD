@@ -1,0 +1,82 @@
+06-oct-10
+
+alte strategie: fire-and-forget
+neue: explizite layers?
+
+wuerde die semantik erweitern, insofern z.b. stop heissen kann stop (front) und stop (all), control ebenso etc. dispose wuerde wohl all implizieren.
+
+das alles wuerde nur sinn machen im falle von gliss und xfade; wobei ein spezialisiertes interface (GUI) auch die moeglichkeit bieten koennte, mehrere layers parallel zu verschieben (instant), z.b. control values.
+
+noetig:
+- weil funktionen wie ˜> und ˜/> sich auf alle layer beziehen muessen. ja? immer?
+- um globalen random access zu implementieren
+
+refactoring:
+- wuerde bedeuten, dass Ref[T] zu einer art Ref[Seq[T]] wuerde, um das polyphone layering zu repraesentieren
+- zu ende gedacht auf fast alle (?) refs, e.g. topology...
+- und damit (multiple topology), dass auch die background-group nicht mehr verschachtelt wird, sondern allgmein die _neue_ foreground-group entsprechend der neuen topologie angelegt wird. --> hat welche folgen fuer die xfades? EINIGE, denn bisher nehmen wir an, dass der background immer dem foreground vorausgeht... [XXX]
+- Ref[Seq[T]] sagt eigentlich nichts anderes aus, als dass wir das persistence layer vorwegnehmen!
+
+- without loss of generality we can assume the simpler case where the only 'all' case is 'dispose'?
+
+vision:
+if( 2.mins.ago( p.isPlaying )) { ... } // memorizing
+if( 2.mins.fromNow( p.control( "amp" ).v > 0.1 )) { ... } // predictive
+
+::::::::: [XXX] :::::::::
+
+a ˜> b ˜> c ˜> d
+xfade( ... ) {
+   a ˜/> b ˜/> c ˜/> d
+   a ˜> c ˜> b ˜> d
+   // (( syntactic sugar : b <˜> c  or  c moveBefore b ? ))
+}
+
+- das problem hier ist, dass die synths von b und c weiterspielen sollen, um unstetigkeiten zu vermeiden (e.g. oszillator-phase, diskin position etc.)... d.h. sie koennen _nicht_ verdoppelt werden (anders als im fall von control.v_=, wo dies zwingend noetig ist).
+- das ist ein technisches problem resultierend aus der client / server struktur, denn ohne diese koennte der synth einfach verdoppelt werden!
+- obwohl: ein neuer /s_copy server befehl wuerde einige fragen aufwerfen: DiskIn - buffer muesste verdoppelt und exakt identisch ge-cuet werden. Noise ugens muessten exact gleich geseedet werden?
+- also a problem of unambiguous semantics: should a filter (graph { in => ... }) operate on a xfaded mix of the input, or should there be two filters xfaded. e.g. imagine a Pitch.kr analyser...
+- this is to say: there are linear filters (gain, lpf, hpf, convolve...) and non-linear ones (sqrt, detectsilence...)
+- how to specify which variant we want:
+   - automatic from annotated ugens --> pro: concise; con: heavier to implement, also might want different custom behaviour occasionally
+   - from proc annotation : linear_filter { }
+   - from online in annotation : graph { in => in.nonLinear; ... }
+   - from offline in annotation : filter { val bin = pAudioIn( nonLinear = true )}
+   - from transactional annotation: xfade { a ˜> b; b.recreate }; pro: flexible; con: not good for GUI (nuages) -- however this could be solved somehow in the interface?
+- the last variant seems to be best choice. recreate would set a flag, which would also be set when certain conditions are fulfilled:
+   - the number of inputs changes
+   - there is a topology conflict between pre and post fade
+
+- i.a. sollte pAudioIn und pAudioOut überdacht werden... vielleicht doch besser ein manifest argument fuer die graph funktion zu verlangen, so dass die zahl der inputs und outputs entnommen werden kann. --> geht nicht ohne explizit type annotation...
+- umgekehrt koennte pAudioIn / out erzwungen werden?
+
+filter {
+  val bin  = pAudioIn.default
+  val bout = pAudioOut.default
+
+  graph {
+    bout.ar( bin.ar * SinOsc.ar )
+  }
+}
+
+...nicht so huebsch, weil laenger, sowie keine partial functional application mehr moeglich ( graph( _ * SinOsc.ar ))
+
+andererseits koennte man sich folgendes vorstellen (overloading):
+
+trait FactoryBuilder {
+def graph[A]( f0: => A )( implicit m: reflect.Manifest[A]) : Unit
+def graph[A]( f1: AudioIn => A )( implicit m: reflect.Manifest[A]) : Unit
+def graph[A]( f2: (AudioIn, AudioIn) => A )( implicit m: reflect.Manifest[A]) : Unit
+}
+...bis zu reasonable size (e.g. 22 :-)
+
+even more, we could try to add view-bounds to A:
+
+
+trait Schnuck {
+def graph[A <: GraphOutput]( f0: => A )( implicit m: reflect.Manifest[A]) : Unit
+def graph[A <: GraphOutput]( f1: AudioIn => A )( implicit m: reflect.Manifest[A]) : Unit
+def graph[A <: GraphOutput]( f2: (AudioIn, AudioIn) => A )( implicit m: reflect.Manifest[A]) : Unit
+}
+// overloading problem kommt mit f1: ControlIn => A ...
+
