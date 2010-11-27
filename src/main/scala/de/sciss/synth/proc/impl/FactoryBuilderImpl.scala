@@ -47,19 +47,19 @@ object FactoryBuilderImpl {
       new FactoryBuilderImpl( name, ProcDiff, true, false )
 }
 
-class FactoryBuilderImpl private( val name: String, val anatomy: ProcAnatomy,
-                                  implicitAudioIn: Boolean, implicitAudioOut: Boolean )
+class FactoryBuilderImpl protected( val name: String, val anatomy: ProcAnatomy,
+                           implicitAudioIn: Boolean, implicitAudioOut: Boolean )
 extends ProcFactoryBuilder {
-   private var finished                   = false
-   private var paramMap                   = Map.empty[ String, ProcParam ]
-   private var paramSeq                   = Vector.empty[ ProcParam ]
+   protected var finished                   = false
+   protected var paramMap                   = Map.empty[ String, ProcParam ]
+   protected var paramSeq                   = Vector.empty[ ProcParam ]
 //   private var buffers                    = Map[ String, ProcBuffer ]()
 //   private var graph: Option[ ProcGraph ] = None
-   private var entry: Option[ ProcEntry ] = None
-   private var pAudioIns                  = Vector.empty[ ProcParamAudioInput ]
-   private var pAudioOuts                 = Vector.empty[ ProcParamAudioOutput ]
+   protected var entry: Option[ ProcEntry ] = None
+   protected var pAudioIns                  = Vector.empty[ ProcParamAudioInput ]
+   protected var pAudioOuts                 = Vector.empty[ ProcParamAudioOutput ]
 
-   @inline private def requireOngoing = require( !finished, "ProcFactory build has finished" )
+   @inline protected def requireOngoing = require( !finished, "ProcFactory build has finished" )
 
    def pScalar( name: String, spec: ParamSpec, default: Double ) : ProcParamScalar = {
       requireOngoing
@@ -94,7 +94,7 @@ extends ProcFactoryBuilder {
       pAudioIn( name, default, false )
    }
 
-   private def pAudioIn( name: String, default: Option[ RichAudioBus ], physical: Boolean ) : ProcParamAudioInput = {
+   protected def pAudioIn( name: String, default: Option[ RichAudioBus ], physical: Boolean ) : ProcParamAudioInput = {
       val p = new ParamAudioInputImpl( name, default, physical )
       addParam( p )
       pAudioIns :+= p
@@ -114,15 +114,15 @@ extends ProcFactoryBuilder {
       p
    }
 
-   private def implicitInAr : GE = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].ar
-   private def implicitOutAr( sig: GE ) : GE = {
+   protected def implicitInAr : GE = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].ar
+   protected def implicitOutAr( sig: GE ) : GE = {
       val rate = Rate.highest( sig.outputs.map( _.rate ): _* )
       if( (rate == audio) || (rate == control) ) {
          Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].ar( sig )
       } else sig
    }
-   private def implicitInNumCh : Int = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].numChannels
-   private def implicitOutNumCh( n: Int ) { Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].numChannels_=( n )}
+   protected def implicitInNumCh : Int = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].numChannels
+   protected def implicitOutNumCh( n: Int ) { Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].numChannels_=( n )}
 
    def graphIn( fun: GE => GE ) : ProcGraph = {
       val fullFun = () => fun( implicitInAr )
@@ -175,14 +175,14 @@ extends ProcFactoryBuilder {
       idle( () => () )
    }
    
-   private def idle( fun: () => Unit ) : ProcIdle = {
+   protected def idle( fun: () => Unit ) : ProcIdle = {
       requireOngoing
       val res = new IdleImpl( fun )
       enter( res )
       res
    }
 
-   private def enter( e: ProcEntry ) {
+   protected def enter( e: ProcEntry ) {
       require( entry.isEmpty, "Entry already defined" )
       entry = Some( e )
    }
@@ -202,7 +202,7 @@ extends ProcFactoryBuilder {
       new FactoryImpl( name, anatomy, entry.get, paramMap, paramSeq, pAudioIns, pAudioOuts )
    }
 
-   private def addParam( p: ProcParam ) {
+   protected def addParam( p: ProcParam ) {
       require( !paramMap.contains( p.name ), "Param name '" + p.name + "' already taken" )
       paramMap  += p.name -> p
       paramSeq :+= p

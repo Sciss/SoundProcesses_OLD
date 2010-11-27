@@ -32,21 +32,44 @@ import de.sciss.synth
 import de.sciss.synth.GE
 
 /**
- *    @version 0.11, 04-Jul-10
+ *    @version 0.20, 26-Nov-10
  */
 case class ParamSpec( lo: Double = 0.0, hi: Double = 1.0, warp: Warp = LinWarp, step: Double = 0.0 ) {
+   import synth._
    def range = hi - lo
    def ratio = hi / lo
    def clip( value: Double ) : Double  = math.max( lo, math.min( hi, value ))
-   def map( value: Double ) : Double   = warp.map( this, value )
+
+   /**
+    * Maps a number from normalized range to spec.
+    * Note: this does involve rounding
+    * according to the spec's step parameter (unless step is zero).
+    */
+   def map( value: Double ) : Double = {
+      val w = warp.map( this, value )
+      if( step <= 0.0 ) w else w.round( step )
+   }
+
    def unmap( value: Double ) : Double = warp.unmap( this, value )
-   def map( value: GE ) : GE           = warp.map( this, value )
+
+   /**
+    * Maps a graph element from normalized range to spec.
+    * Note: this does involve rounding
+    * according to the spec's step parameter (unless step is zero).
+    */
+   def map( value: GE ) : GE = {
+      val w = warp.map( this, value )
+      if( step <= 0.0 ) w else w.round( step )
+   }
+
    def unmap( value: GE ) : GE         = warp.unmap( this, value )
 }
 
 trait Warp {
    /**
-    *    From normalized range to spec
+    * From normalized range to spec.
+    * Note: this does not involve rounding
+    * according to the spec's step parameter!
     */
    def map( spec: ParamSpec, value: Double ) : Double
 

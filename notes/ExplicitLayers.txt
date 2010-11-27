@@ -72,11 +72,110 @@ def graph[A]( f2: (AudioIn, AudioIn) => A )( implicit m: reflect.Manifest[A]) : 
 
 even more, we could try to add view-bounds to A:
 
-
-trait Schnuck {
+trait FactoryBuilder {
 def graph[A <: GraphOutput]( f0: => A )( implicit m: reflect.Manifest[A]) : Unit
 def graph[A <: GraphOutput]( f1: AudioIn => A )( implicit m: reflect.Manifest[A]) : Unit
 def graph[A <: GraphOutput]( f2: (AudioIn, AudioIn) => A )( implicit m: reflect.Manifest[A]) : Unit
 }
 // overloading problem kommt mit f1: ControlIn => A ...
 
+:::::::::::::::::::::::::::::::::::::
+:: CURRENT REF STRUCTURE OF A PROC ::
+
+runningRef : Option[ ProcRunning ]
+   RunningGraphImpl ->
+      accMapRef : Map[ String, AudioBusPlayerImpl ]
+
+groupsRef : Option[ AllGroups ]
+stateRef : State
+backRef : Option[ RichGroup ]
+
+audioInputs : Seq[ AudioInputImpl ]
+   AudioBusImpl ->
+      busRef : Option[ RichAudioBus ]
+      syntheticRef : Boolean
+      edgesRef : Set[ ProcEdge ]
+      playingRef : Boolean
+audioOutputs : Seq[ AudioOutputImpl ]
+   ...
+controls : Seq[ ControlImpl ]
+   ControlImpl ->
+      valueRef : ControlValue
+
+::::::::::::::::::::::::::::::::::
+:: HANDLING MULTIPLE TOPOLOGIES ::
+
+1) a ˜> b ˜> c ˜> d // fading out
+2) a ˜> c ˜> b ˜> d // fading in
+
+- actually we just need one topology but will duplicate the nodes when needed?
+- thus type Vertex = (Proc, Layer)
+- wobei ja Layer nicht vorder-, hintergrund ist, sondern konstant bleiben muss beim
+  uebergang, um keine wechsel in vorhandenen map- und set-keys noetig zu machen.
+  entsprechend kann Layer ein incremental index sein
+- und dann waere eine lazy-/reuse strategie bei fehlendem layer-key auf das letzte
+  groesstmoegliche element zuzugreifen; was im kern identisch mit der confluent
+  persistence ist!
+- und damit Ref[ A ] --> Ref[ FatValue[ A ]]
+- ARE WE READY FOR THIS???!!!
+- der backend koennte plugable/neutral sein, so dass sich sowohl ein vergessliches
+  gedaechtnis, als auch ein memorierendes realisieren lassen? (evtl. auch beide parallel)
+
+
+ausgangspunkt: a ˜> b ˜> c ˜> d
+xfade( ... ) {
+   a ˜/> b
+   b ˜/> c
+   c ˜/> d
+   a ˜> c
+   c ˜> b
+   b ˜> d
+}
+
+- sind nach wie vor mehrere xfades pro txn moeglich?
+- diese frage waere evtl. mit nested-transactions beantwortet (funktionieren bereits?)
+- unsinn --> txn =ˆ= tk, mehrere xfades =ˆ= tp !!
+
+:::::::::::::::::::::::::::::::::
+:: RE-INTRODUCING THE TIMELINE ::
+
++---+------------+---+
+|IN |            |OUT|
++---+------------+---+
+t0  t1           t2  t3
+
+clear MVC separation:
+
+  model:
+  - isRunning (+ fade info)
+  - stateRef
+  - audioInputs / -Outputs : playingRef, edgesRef
+  - controls
+
+  view:
+  - runningRef
+  - groupRef
+  - backRef
+  - audioInputs / -Outputs : busRef, syntheticRef
+
+realtime playback:
+
++-..+
+|IN :
++-..+
+
++---+
+|IN |
++---+
+
++---+--..
+|IN |    
++---+--..
+
++---+------------+-..+
+|IN |            |OUT:
++---+------------+-..+
+
++---+------------+---+
+|IN |            |OUT|
++---+------------+---+
