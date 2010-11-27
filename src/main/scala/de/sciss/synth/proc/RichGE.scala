@@ -71,7 +71,7 @@ class RichGE( ge: GE ) {
     *    upon receiving the trigger.
     */
    def react( values: GE )( fun: Seq[ Double ] => Unit ) {
-      val r    = new SynthReactionImpl(  ge, values, fun )
+      val r    = new SynthReactionImpl( ge, values, fun )
       val pb   = ProcGraphBuilder.local
       pb.includeReaction( r )
    }

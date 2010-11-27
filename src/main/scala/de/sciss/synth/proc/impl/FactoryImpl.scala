@@ -43,7 +43,7 @@ class FactoryImpl( val name: String, val anatomy: ProcAnatomy,
                    val pAudioIns: IIdxSeq[ ProcParamAudioInput ],
                    val pAudioOuts: IIdxSeq[ ProcParamAudioOutput ])
 extends ProcFactory {
-   private val count = Ref( 1 )
+   protected val count = Ref( 1 )
 
    def make( implicit tx: ProcTxn ) : Proc = {
       val cnt = count()
