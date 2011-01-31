@@ -56,6 +56,8 @@ trait ProcTxn {
    def transit : Transition
 
    private[ proc ] def ccstm : Txn
+
+   def isActive : Boolean = ccstm.status == Txn.Active
 }
 
 object ProcTxn {
