@@ -1,8 +1,8 @@
 /*
  *  Ref.scala
- *  (ScalaCollider-Proc)
+ *  (SoundProcesses)
  *
- *  Copyright (c) 2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ package de.sciss.synth.proc
 import edu.stanford.ppl.ccstm.{ TxnLocal => CTxnLocal, Txn, Ref => CRef}
 
 /**
- *    ScalaCollider-Proc's Ref wraps CCSTM's in order to isolate the rest of the
+ *    SoundProcesses's Ref wraps CCSTM's in order to isolate the rest of the
  *    code from the need to import ccstm packages. It also changes the method
  *    naming slightly, and most importantly adds refined Refs through the
  *    companion object's <code>withCheck</code> and <code>withObserver</code>

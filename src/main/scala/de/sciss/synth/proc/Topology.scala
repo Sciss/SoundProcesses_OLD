@@ -1,8 +1,8 @@
 /*
  *  ProcTopology.scala
- *  (ScalaCollider-Proc)
+ *  (SoundProcesses)
  *
- *  Copyright (c) 2010 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2011 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ import collection.immutable.{ IndexedSeq => IIdxSeq, Map => IMap, Seq => ISeq, S
 import collection.mutable.{ HashSet => MHashSet, Set => MSet, Stack => MStack }
 
 /**
- *    @version 0.12, 09-Jun-10
+ *    @version 0.12, 01-Feb-11
  */
 object Topology {
    def empty[ V, E <: Edge[ V ]] = apply( Vector.empty[ V ], ISet.empty[ E ])( 0, Map.empty[ V, ISet[ E ]])
@@ -43,12 +43,20 @@ object Topology {
    }
 }
 case class Topology[ V, E <: Topology.Edge[ V ]]( vertices: IIdxSeq[ V ], edges: ISet[ E ])
-                                                ( unpositioned: Int, edgeMap: IMap[ V, ISet[ E ]]) {
+                                                ( unpositioned: Int, edgeMap: IMap[ V, ISet[ E ]])
+extends Ordering[ V ] {
    import Topology._
 
    type T = Topology[ V, E ]
 
    override def toString = "Topology(" + vertices + ", " + edges + ")(" + unpositioned + ", " + edgeMap + ")"
+
+   def compare( a: V, b: V ) : Int = {
+      val ai = vertices.indexOf( a )
+      val bi = vertices.indexOf( b )
+      require( ai >= unpositioned && bi >= unpositioned )
+      ai.compare( bi )
+   }
 
    /**
     *    @return  None if the edge would violate acyclicity, otherwise the Some tuple contains
