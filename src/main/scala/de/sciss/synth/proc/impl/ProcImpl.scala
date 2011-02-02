@@ -432,6 +432,10 @@ extends Proc {
    def dispose( implicit tx: ProcTxn ) {
       runningRef() map { r =>
          r.stop
+// do this here, because otherwise disposeEdges will call into busChanged and runningRef()
+// will forward this to the (already stopped) running which in turn will complain that
+// a used bus is set to None
+runningRef.set( None )
          disposeEdges   // important to do this after r.stop to avoid re-creating physical outputs!
          tx transit match {
             case Instant => {
@@ -441,8 +445,9 @@ extends Proc {
                }
             }
             case xfade: XFade => {
-               xfade.markSendToBack( this, false )
-               createBackground( xfade, true )
+               error( "NOT YET SUPPORTED" )
+//               xfade.markSendToBack( this, false )
+//               createBackground( xfade, true )
             }
             case glide: Glide => {
                error( "NOT YET SUPPORTED" )
@@ -450,7 +455,7 @@ extends Proc {
          }
 //         audioInputs.foreach( _.dispose )
 //println( "WARNING : Proc.dispose : STILL INCOMPLETE : EDGES ARE NOT YET REMOVED" )
-         runningRef.set( None )
+//         runningRef.set( None )
       } getOrElse {
          disposeEdges
          groupsRef() foreach { all =>
