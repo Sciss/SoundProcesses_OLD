@@ -76,7 +76,13 @@ object ProcTxn {
    private val actor = {
       val res = new DaemonActor {
          def act { loop { react {
-            case Fun( f ) => f()
+            case Fun( f ) => try {
+               f()
+            } catch {
+               case e =>
+                  println( "Exception in ProcTxn.spawnAtomic:" )
+                  e.printStackTrace()
+            }
          }}}
       }
       res.start
