@@ -28,7 +28,7 @@
 
 package de.sciss.synth.proc
 
-import edu.stanford.ppl.ccstm.{ Ref => CRef, Txn }
+import concurrent.stm.{ Ref => CRef, InTxn }
 import collection.immutable.{ Queue => IQueue }
 
 /**
@@ -87,7 +87,7 @@ trait TxnModel[ T ] {
                parList.foreach(  _.updated( parUpd  ))
                fullList.foreach( _.updated( fullUpd ))
             }
-         }, Int.MaxValue )
+         }) // , Int.MaxValue )
       }
    }
 }

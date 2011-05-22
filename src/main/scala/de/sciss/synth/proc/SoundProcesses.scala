@@ -30,8 +30,8 @@ package de.sciss.synth.proc
 
 object SoundProcesses {
    val name          = "SoundProcesses"
-   val version       = 0.15
-   val copyright     = "(C)opyright 2010 Hanns Holger Rutz"
+   val version       = 0.23
+   val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
    def versionString = (version + 0.001).toString.substring( 0, 4 )
 
    def main( args: Array[ String ]) {

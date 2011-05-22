@@ -74,7 +74,7 @@ extends DurationalTransition {
       isNew
    }
 
-   def finish( implicit tx: ProcTxn ) {
+   def finish( implicit tx: ProcTxn ) {             dur
       if( markMap.isEmpty ) return
       
       markMap foreach { tup =>

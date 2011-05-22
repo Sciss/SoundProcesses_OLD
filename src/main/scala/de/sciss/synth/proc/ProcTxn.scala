@@ -29,12 +29,12 @@
 package de.sciss.synth.proc
 
 import de.sciss.osc.{ OSCBundle, OSCMessage }
-import edu.stanford.ppl.ccstm.{ STM, Txn }
 import collection.immutable.{ IndexedSeq => IIdxSeq, IntMap, Queue => IQueue }
 import collection.{ breakOut }
 import de.sciss.synth.osc.{OSCSyncedMessage, OSCSend}
 import de.sciss.synth.Server
 import actors.{DaemonActor, Actor, Futures}
+import concurrent.stm.{InTxnEnd, TxnExecutor, Txn, InTxn}
 
 /**
  *    @version 0.12, 29-Aug-10
@@ -47,17 +47,17 @@ trait ProcTxn {
 //   def add( player: TxnPlayer ) : Unit
 
    def beforeCommit( callback: ProcTxn => Unit ) : Unit
-   def beforeCommit( callback: ProcTxn => Unit, prio: Int ) : Unit
+//   def beforeCommit( callback: ProcTxn => Unit, prio: Int ) : Unit
    def afterCommit( callback: ProcTxn => Unit ) : Unit
-   def afterCommit( callback: ProcTxn => Unit, prio: Int ) : Unit
+//   def afterCommit( callback: ProcTxn => Unit, prio: Int ) : Unit
 
    def withTransition[ T ]( trns: Transition )( thunk: => T ) : T
    def time : Double
    def transit : Transition
 
-   private[ proc ] def ccstm : Txn
+   private[ proc ] def ccstm : InTxn
 
-   def isActive : Boolean = ccstm.status == Txn.Active
+   def isActive : Boolean = Txn.status( ccstm ) == Txn.Active
 }
 
 object ProcTxn {
@@ -94,9 +94,10 @@ object ProcTxn {
       actor ! Fun( () => atomic( block ))
    }
 
-   def atomic[ Z ]( block: ProcTxn => Z ) : Z = STM.atomic { implicit t =>
+   def atomic[ Z ]( block: ProcTxn => Z ) : Z = TxnExecutor.defaultAtomic { implicit t =>
       val tx = new Impl
-      t.addWriteResource( tx, Int.MaxValue )
+//      t.addWriteResource( tx, Int.MaxValue )
+
 //      val oldTx = localVar.get
 //      if( oldTx != null ) error( "Cannot nest transactions currently" )
 //      localVar.set( tx )
@@ -112,8 +113,8 @@ object ProcTxn {
    private val errOffMsg   = OSCMessage( "/error", -1 )
    private val errOnMsg    = OSCMessage( "/error", -2 )
 
-   private class Impl( implicit txn: Txn )
-   extends ProcTxn with Txn.WriteResource {
+   private class Impl( implicit txn: InTxn )
+   extends ProcTxn with Txn.ExternalDecider /* WriteResource */ {
       tx =>
 
 //      private val transitRef  = TxnLocal[ Transition ]( Instant )
@@ -128,6 +129,13 @@ object ProcTxn {
       private var entryCnt    = 0
 //      private var players     = IQueue.empty[ TxnPlayer ]
 
+      private var beforeCommitHandlers = IIdxSeq.empty[ ProcTxn => Unit ]
+//      private var afterCommitHandlers  = IIdxSeq.empty[ ProcTxn => Unit ]
+
+      Txn.setExternalDecider( tx )
+      Txn.beforeCommit( performCommit( _ ))
+      Txn.afterRollback( performRollback( _ ))
+
       private class ServerData( val server: Server ) {
          var firstMsgs        = IQueue.empty[ OSCMessage ]
          var secondMsgs       = IQueue.empty[ OSCMessage ]
@@ -137,7 +145,7 @@ object ProcTxn {
          var secondSent       = false
       }
 
-      private[ proc ] def ccstm : Txn = txn
+      private[ proc ] def ccstm : InTxn = txn
 
       // XXX eventually in logical time framework
       def time : Double = (System.currentTimeMillis - startTime) * 0.001
@@ -157,7 +165,7 @@ object ProcTxn {
 
       // ---- WriteResource implementation ----
 
-      def prepare( t: Txn ) : Boolean = syn.synchronized { t.status.mightCommit && {
+      def shouldCommit( implicit t: InTxnEnd ) : Boolean = syn.synchronized { /* t.status.mightCommit && { */
          if( verbose ) println( "TXN PREPARE" )
          val (clumps, maxSync) = establishDependancies
 val server = Server.default // XXX vergación
@@ -181,9 +189,9 @@ val server = Server.default // XXX vergación
             }
          })
          true
-      }}
+      } /* } */
 
-      def performRollback( t: Txn ) {
+      private def performRollback( status: Txn.Status ) {
          if( verbose ) println( "TXN ROLLBACK" )
          val datas = serverData.values
          datas.foreach( data => {
@@ -197,7 +205,7 @@ val server = Server.default // XXX vergación
          })
       }
 
-      def performCommit( t: Txn ) {
+      private def performCommit( t: InTxn ) {
          if( verbose ) println( "TXN COMMIT" )
          val datas = serverData.values
          datas.foreach( data => {
@@ -207,6 +215,7 @@ val server = Server.default // XXX vergación
                server ! OSCBundle( secondMsgs: _* )
             }
          })
+         beforeCommitHandlers.foreach( _.apply( tx ))
       }
 
       def waitFor( server: Server, ids: Int* ) {
@@ -259,20 +268,22 @@ val server = Server.default // XXX vergación
       }
 
       def beforeCommit( callback: ProcTxn => Unit ) {
-         txn.beforeCommit( _ => callback( tx ))
+//         txn.beforeCommit( _ => callback( tx ))
+         beforeCommitHandlers :+= callback // .transform( _ :+ callback )( tx )
       }
 
-      def beforeCommit( callback: ProcTxn => Unit, prio: Int ) {
-         txn.beforeCommit( _ => callback( tx ), prio )
-      }
+//      def beforeCommit( callback: ProcTxn => Unit, prio: Int ) {
+//         txn.beforeCommit( _ => callback( tx ), prio )
+//      }
 
       def afterCommit( callback: ProcTxn => Unit ) {
-         txn.afterCommit( _ => callback( tx ))
+//         txn.afterCommit( _ => callback( tx ))
+         Txn.afterCommit( _ => callback( tx ))
       }
 
-      def afterCommit( callback: ProcTxn => Unit, prio: Int ) {
-         txn.afterCommit( _ => callback( tx ), prio )
-      }
+//      def afterCommit( callback: ProcTxn => Unit, prio: Int ) {
+//         txn.afterCommit( _ => callback( tx ), prio )
+//      }
 
       // XXX IntMap lost. might eventually implement the workaround
       // by jason zaugg : http://gist.github.com/452874

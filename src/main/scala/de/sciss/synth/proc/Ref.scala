@@ -28,7 +28,7 @@
 
 package de.sciss.synth.proc
 
-import edu.stanford.ppl.ccstm.{ TxnLocal => CTxnLocal, Txn, Ref => CRef}
+import concurrent.stm.{Txn, InTxn, Ref => CRef, TxnLocal => CTxnLocal}
 
 /**
  *    SoundProcesses's Ref wraps CCSTM's in order to isolate the rest of the
@@ -126,10 +126,10 @@ object Ref {
    extends TouchImpl( _c ) {
       protected def touched( tx: ProcTxn ) {
          val t = tx.ccstm
-         t.beforeCommit( implicit t0 => {
+         Txn.beforeCommit( implicit t0 => {
             val newValue = _c()
-            if( fun.isDefinedAt( newValue )) t0.afterCommit { _ => fun( newValue )}
-         }, Int.MaxValue )
+            if( fun.isDefinedAt( newValue )) Txn.afterCommit( _ => fun( newValue ))( t0 )
+         })( t ) // , Int.MaxValue )
       }
    }
 
@@ -138,10 +138,10 @@ object Ref {
       protected def touched( tx: ProcTxn ) {
          val t = tx.ccstm
          val oldValue = _c()( t )
-         t.beforeCommit( implicit t0 => {
+         Txn.beforeCommit( implicit t0 => {
             val newValue = _c()
-            t0.afterCommit { _ => fun( oldValue, newValue )}
-         }, Int.MaxValue )
+            Txn.afterCommit( _ => fun( oldValue, newValue ))( t0 )
+         })( t ) // , Int.MaxValue )
       }
    }
 }
@@ -157,10 +157,8 @@ trait TxnLocal[ /*@specialized*/ T ] {
 }
 
 object TxnLocal {
-   def apply[ /*@specialized*/ T ] : TxnLocal[ T ] = new Impl( new CTxnLocal[ T ])
-   def apply[ /*@specialized*/ T ]( initValue: => T ) : TxnLocal[ T ] = new Impl( new CTxnLocal[ T ] {
-      override def initialValue( tx: Txn ): T = initValue
-   })
+   def apply[ /*@specialized*/ T ] : TxnLocal[ T ] = new Impl( CTxnLocal[ T ]() )
+   def apply[ /*@specialized*/ T ]( initValue: => T ) : TxnLocal[ T ] = new Impl( CTxnLocal[ T ]( initialValue = _ => initValue ))
 //   def apply[ /*@specialized*/ T ]( initValue: Txn => T ) : TxnLocal[ T ] = new Impl( new CTxnLocal[ T ] {
 //      override def initialValue( tx: Txn ): T = initValue
 //   })
@@ -169,13 +167,15 @@ object TxnLocal {
       def apply()( implicit tx: ProcTxn ) : T = c.get( tx.ccstm )
       def set( v: T )( implicit tx: ProcTxn ) : Unit = c.set( v )( tx.ccstm )
       def swap( v: T )( implicit tx: ProcTxn ) : T = {
-         // currently not implemented in CTxnLocal
-         val oldV = apply
-         set( v )
-         oldV
+//         // currently not implemented in CTxnLocal
+//         val oldV = apply
+//         set( v )
+//         oldV
+         c.swap( v )( tx.ccstm )
       }
       def transform( f: T => T )( implicit tx: ProcTxn ) {
-         set( f( apply ))
+//         set( f( apply ))
+         c.transform( f )( tx.ccstm )
       }
    }
 }
