@@ -42,7 +42,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.9.0/compile/scalacollider_2.9.0-0.24.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.9.0/compile/scala-stm_2.9.0-0.3.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -51,7 +51,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.9.0/compile/scala-stm_2.9.0-0.3.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/scala_2.9.0/compile/scalacollider_2.9.0-0.30-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

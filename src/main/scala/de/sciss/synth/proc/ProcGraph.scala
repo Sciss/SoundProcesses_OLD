@@ -44,6 +44,7 @@ object ProcGraphBuilder extends ThreadLocalObject[ ProcGraphBuilder ] {
 }
 
 trait ProcGraphBuilder extends ProcEntryBuilder {
+   def individuate: Int
    def includeBuffer( b: ProcBuffer ) : Unit
    def bufCue( path: String, startFrame: Long ) : ProcBuffer
    def bufEmpty( numFrames: Int, numChannels: Int ) : ProcBuffer

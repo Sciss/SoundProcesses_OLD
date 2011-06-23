@@ -7,25 +7,23 @@ import de.sciss.synth.{ scalar, control, Constant, GE, Rate, SynthGraph }
 import de.sciss.synth.ugen.{ Impulse, Mix, SendReply }
 import de.sciss.osc.OSCMessage
 
-class SynthReactionImpl( trig: GE, values: GE, fun: Seq[ Double ] => Unit )
+class SynthReactionImpl( trig: GE, values: GE, fun: Seq[ Double ] => Unit, replyID: Int )
 extends ProcSynthReaction {
-   private val replyID = SynthGraph.individuate  // XXX best way to do this?
+//   private val replyID = SynthGraph.individuate  // XXX best way to do this?
 
    // ---- constructor: embed in graph ----
    {
       import synth._
       val trig0 = trig match {
-         case Constant( freq ) => Impulse( Rate.lowest( values ) match {
-               case `scalar`  => control
-               case r         => r
+         case Constant( freq ) => Impulse( values.rate match {
+               case `scalar`        => control
+               case r: Rate         => r
+               case UndefinedRate   => audio
             }, freq, 0 )
          case _ => Mix( trig ) \ 0
       }
 //println( "trig = " + trig0 )
-      SendReply( Rate.highest( Rate.highest( values ), trig0.rate ) match {
-         case `scalar`  => control
-         case r         => r
-      }, trig0, values.outputs, "/$react", Constant( replyID ))
+      SendReply( trig0.rate, trig0, values /* .outputs */, "/$react", Constant( replyID ))
    }
 
    private[proc] def create( rs: RichSynth )( implicit tx: ProcTxn ) : TxnPlayer = {

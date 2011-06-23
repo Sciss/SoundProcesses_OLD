@@ -114,7 +114,7 @@ object SoundProcesses {
                graph { SinOsc.ar( 2 )}
             }).make
             val p3 = (diff( "Silent" ) {
-               graph { _ => Silent.ar }
+               graph { _: GE => Silent.ar }
             }).make
             val p2 = (gen( "Osc" ) {
                val pfreq = pAudio( "freq", ParamSpec( 100, 10000, ExpWarp ), 441 )
@@ -152,7 +152,7 @@ object SoundProcesses {
          t { implicit tx =>
             val genDummyStereo = gen( "@" ) { graph { Silent.ar( 2 )}}
             val fieldCollectors: Map[ Int, Proc ] = (1 to 4).map( field => {
-               val genColl = filter( field.toString ) { graph { in => in }}
+               val genColl = filter( field.toString ) { graph { in: GE => in }}
                val pColl   = genColl.make
                val pDummy  = genDummyStereo.make
                pDummy ~> pColl
@@ -166,7 +166,7 @@ object SoundProcesses {
 
             // ---- master ----
 
-            val pMaster = diff( "master" )( graph { in =>
+            val pMaster = diff( "master" )( graph { in: GE =>
                val ctrl = HPF.ar( in, 50 )
                val cmp  = Compander.ar( in, ctrl, (-12).dbamp, 1, 1.0/3.0 ) * 2
                Out.ar( 0, cmp )
@@ -197,7 +197,7 @@ object SoundProcesses {
                graph { PinkNoise.ar( List( 0.2, 0.2 ))}
             }).make
             val p2 = diff( "2" )({
-               graph { in => Out.ar( 0, in )}
+               graph { in: GE => Out.ar( 0, in )}
             }).make
             val p3 = gen( "3" )({
                graph { SinOsc.ar( List( 400, 410 )) * 0.2 }
@@ -250,7 +250,7 @@ object SoundProcesses {
             val pspeed  = pAudio( "speed", ParamSpec( 0.125, 2.3511, ExpWarp ), 0.5 )
             val pmix    = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
 
-            graph { in =>
+            graph { in: GE =>
                val speed	   = Lag.ar( pspeed.ar, 0.1 )
                val numFrames  = sampleRate.toInt
                val numChannels= in.numOutputs

@@ -29,7 +29,7 @@
 package de.sciss.synth.proc
 
 import collection.immutable.{ IndexedSeq => IIdxSeq, Set => ISet }
-import de.sciss.synth.{ addAfter, addBefore, Group, Server, SynthDef, SynthGraph }
+import de.sciss.synth.{UGenGraph, addAfter, addBefore, Group, Server, SynthDef, SynthGraph}
 
 /**
  *    @version 0.12, 06-Jul-10
@@ -217,7 +217,7 @@ object ProcDemiurg extends TxnModel[ ProcDemiurgUpdate ] { // ( val server: Serv
       val w    = worlds( server )
       w.synthGraphs().get( graph ).getOrElse({
          val name = "proc" + nextDefID
-         val rd   = RichSynthDef( server, SynthDef( name, graph ))
+         val rd   = RichSynthDef( server, SynthDef( name, graph.expand ))
          w.synthGraphs.transform( _ + (graph -> rd) )
 //         tx.add( server, rd.synthDef.recvMsg )
          rd

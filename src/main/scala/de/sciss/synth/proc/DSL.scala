@@ -31,6 +31,7 @@ package de.sciss.synth.proc
 import java.io.{ IOException }
 import de.sciss.synth.GE
 import de.sciss.synth.io.{SampleFormat, AudioFileType, AudioFileSpec}
+import de.sciss.synth.aux.GraphFunction
 
 /**
  *    @version 0.15, 11-Aug-10
@@ -150,7 +151,7 @@ object DSL {
     *
     * The scope is inside a `gen { }`, `filter { }` or `diff { }` block.
     */
-   def graph( thunk: => GE ) : ProcGraph = {
+   def graph[ T : GraphFunction.Result ]( thunk: => T ) : ProcGraph = {
       val b = ProcFactoryBuilder.local
       b.anatomy match {
          case ProcGen    => b.graphOut( () => thunk )
@@ -168,7 +169,7 @@ object DSL {
     *
     * The scope is inside a `filter { }` or `diff { }` block.
     */
-   def graph( fun: GE => GE ) : ProcGraph = {
+   def graph[ T : GraphFunction.Result ]( fun: GE => T ) : ProcGraph = {
       val b = ProcFactoryBuilder.local
       b.anatomy match {
          case ProcGen    => error( "Generators do not have a default input" )

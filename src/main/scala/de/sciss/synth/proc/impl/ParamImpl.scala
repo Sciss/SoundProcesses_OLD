@@ -29,11 +29,11 @@
 package de.sciss.synth.proc.impl
 
 import de.sciss.synth.ugen.{ In, Out }
-import de.sciss.synth.{ audio, control, GE }
 import de.sciss.synth.proc.{ ParamSpec, Proc, ProcEntryBuilder, ProcParamAudio, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamControl, ProcParamScalar,
    ProcParamUnspecifiedException, RichAudioBus, RichBus }
 import de.sciss.synth
+import synth.{UGenSource, audio, control, GE}
 
 /**
  *    @version 0.13, 02-Aug-10
@@ -175,7 +175,7 @@ extends ProcParamAudioOutput {
       b
    }
 
-   def ar( sig: GE ) : GE = {
+   def ar( sig: GE ) : Out = {
       import synth._
       val numCh   = sig.numOutputs
       val b       = resolveBusAndIncludeParam( numCh )

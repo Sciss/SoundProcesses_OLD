@@ -49,8 +49,8 @@ class RichGE( ge: GE ) {
    def react( thunk: => Unit ) {
       // XXX eventually we could optimize this by
       // using SendTrig instead of SendReply in this case
-      val r    = new SynthReactionImpl( ge, Constant(0), x => thunk )
       val pb   = ProcGraphBuilder.local
+      val r    = new SynthReactionImpl( ge, Constant(0), x => thunk, pb.individuate )
       pb.includeReaction( r )
    }
 
@@ -71,8 +71,8 @@ class RichGE( ge: GE ) {
     *    upon receiving the trigger.
     */
    def react( values: GE )( fun: Seq[ Double ] => Unit ) {
-      val r    = new SynthReactionImpl( ge, values, fun )
       val pb   = ProcGraphBuilder.local
+      val r    = new SynthReactionImpl( ge, values, fun, pb.individuate )
       pb.includeReaction( r )
    }
 }

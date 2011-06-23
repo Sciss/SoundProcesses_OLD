@@ -5,7 +5,7 @@ import collection.immutable.{ Queue => IQueue }
 import de.sciss.synth.proc.{ Proc, ProcBuffer, ProcGraphBuilder, ProcParam, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamFloat, ProcRunning, ProcSynthReaction, ProcTxn,
    RichAudioBus, RichControlBus, RichSynth, RichSynthDef, TxnPlayer }
-import de.sciss.synth.{ ControlSetMap, SingleControlSetMap, SynthGraph }
+import de.sciss.synth.{ ControlSetMap, SynthGraph }
 import de.sciss.synth.io.{AudioFileType, SampleFormat}
 
 /**
@@ -63,7 +63,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
                val name = pFloat.name
                val cv   = p.control( name ).cv
                cv.mapping match {
-                  case None => setMaps :+= SingleControlSetMap( name, cv.target.toFloat )
+                  case None => setMaps :+= ControlSetMap.Single( name, cv.target.toFloat )
                   case Some( m ) => m.mapBus match {
                      case rab: RichAudioBus => {
                         accessories = accessories.enqueue( rs => AudioBusPlayerImpl( m, rs.map( rab -> name )))
@@ -71,7 +71,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
                      }
                      case rcb: RichControlBus => {
                         println( "WARNING: Mapping to control bus not yet supported" )
-                        setMaps :+= SingleControlSetMap( name, cv.target.toFloat )
+                        setMaps :+= ControlSetMap.Single( name, cv.target.toFloat )
                      }
                   }
                }
@@ -98,7 +98,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
          val (target, addAction) = p.runningTarget( false )
          val bufs          = bufSeq.map( _.create( server ))
          val bufsZipped    = bufSeq.zip( bufs )
-         setMaps ++= bufsZipped.map( tup => SingleControlSetMap( tup._1.controlName, tup._2.buf.id ))
+         setMaps ++= bufsZipped.map( tup => ControlSetMap.Single( tup._1.controlName, tup._2.buf.id ))
          val rs = rsd.play( target, setMaps, addAction, bufs )
          val morePlayers   = reactions.map( _.create( rs ))
 
