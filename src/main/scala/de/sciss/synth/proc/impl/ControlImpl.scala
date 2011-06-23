@@ -34,6 +34,7 @@ import de.sciss.synth.proc.{ ControlABusMapping, ControlBusMapping, ControlGlidi
    RichAudioBus, RichBus, RichControlBus, RichGroup, RichSynth, RichSynthDef, XFade }
 import de.sciss.synth.ugen.{ A2K, Clip, In, Line, Mix, Out }
 import de.sciss.{ synth => syn }
+import sys.error
 
 /**
  *    @version 0.12, 03-Aug-10

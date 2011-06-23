@@ -114,7 +114,7 @@ object SoundProcesses {
                graph { SinOsc.ar( 2 )}
             }).make
             val p3 = (diff( "Silent" ) {
-               graph { _: GE => Silent.ar }
+               graph { _: In => Silent.ar }
             }).make
             val p2 = (gen( "Osc" ) {
                val pfreq = pAudio( "freq", ParamSpec( 100, 10000, ExpWarp ), 441 )
@@ -250,10 +250,10 @@ object SoundProcesses {
             val pspeed  = pAudio( "speed", ParamSpec( 0.125, 2.3511, ExpWarp ), 0.5 )
             val pmix    = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
 
-            graph { in: GE =>
+            graph { in: In =>
                val speed	   = Lag.ar( pspeed.ar, 0.1 )
                val numFrames  = sampleRate.toInt
-               val numChannels= in.numOutputs
+               val numChannels= in.numChannels // numOutputs
                val buf        = bufEmpty( numFrames, numChannels )
                val bufID      = buf.id
                val writeRate  = BufRateScale.kr( bufID )

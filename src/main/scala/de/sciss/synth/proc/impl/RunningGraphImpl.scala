@@ -30,6 +30,7 @@ package de.sciss.synth.proc.impl
 
 import de.sciss.synth.proc.{ ControlValue, Glide, Instant, ProcAudioBus, ProcControl, ProcRunning, ProcTxn, Ref,
    RichAudioBus, RichGroup, RichNode, RichSynth, TxnPlayer, XFade }
+import sys.error
 
 /**
  *    @version 0.11, 29-Aug-10

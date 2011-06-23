@@ -30,6 +30,7 @@ package de.sciss.synth.proc
 
 import collection.immutable.{ IndexedSeq => IIdxSeq, Set => ISet }
 import de.sciss.synth.{UGenGraph, addAfter, addBefore, Group, Server, SynthDef, SynthGraph}
+import sys.error
 
 /**
  *    @version 0.12, 06-Jul-10

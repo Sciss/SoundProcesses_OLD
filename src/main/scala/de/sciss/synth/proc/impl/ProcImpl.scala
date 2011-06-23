@@ -38,6 +38,7 @@ import de.sciss.synth.proc.{ ControlValue, Glide, Instant, Proc, ProcAudioBus, P
    ProcAudioOutput, ProcControl, ProcDemiurg, ProcEdge, ProcParam,
    ProcParamAudio, ProcParamControl, ProcParamScalar, ProcParamUnspecifiedException, ProcRunning, ProcTxn, Ref,
    RichAudioBus, RichGroup, RichNode, RichSynthDef, XFade }
+import sys.error
 
 /**
  *    @version 0.14, 02-Aug-10

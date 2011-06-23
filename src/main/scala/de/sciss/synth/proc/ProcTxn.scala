@@ -35,10 +35,8 @@ import de.sciss.synth.osc.{OSCSyncedMessage, OSCSend}
 import de.sciss.synth.Server
 import actors.{DaemonActor, Actor, Futures}
 import concurrent.stm.{InTxnEnd, TxnExecutor, Txn, InTxn}
+import sys.error
 
-/**
- *    @version 0.12, 29-Aug-10
- */
 trait ProcTxn {
    import ProcTxn._
 

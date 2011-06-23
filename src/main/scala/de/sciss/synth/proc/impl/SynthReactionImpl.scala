@@ -20,7 +20,7 @@ extends ProcSynthReaction {
                case r: Rate         => r
                case UndefinedRate   => audio
             }, freq, 0 )
-         case _ => Mix( trig ) \ 0
+         case _ => Mix.mono( trig )
       }
 //println( "trig = " + trig0 )
       SendReply( trig0.rate, trig0, values /* .outputs */, "/$react", Constant( replyID ))

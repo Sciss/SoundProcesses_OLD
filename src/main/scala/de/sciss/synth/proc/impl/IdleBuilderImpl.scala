@@ -2,6 +2,7 @@ package de.sciss.synth.proc.impl
 
 import de.sciss.synth.proc.{ Proc, ProcEntryBuilder, ProcParamAudioInput, ProcParamAudioOutput,
    ProcRunning, ProcTxn }
+import sys.error
 
 class IdleBuilderImpl( idle: IdleImpl, val tx: ProcTxn )
 extends EntryBuilderImpl {

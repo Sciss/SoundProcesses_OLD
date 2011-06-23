@@ -34,6 +34,7 @@ import de.sciss.synth.proc.{ ParamSpec, Proc, ProcEntryBuilder, ProcParamAudio, 
    ProcParamUnspecifiedException, RichAudioBus, RichBus }
 import de.sciss.synth
 import synth.{UGenSource, audio, control, GE}
+import sys.error
 
 /**
  *    @version 0.13, 02-Aug-10
@@ -136,7 +137,7 @@ extends ProcParamAudioInput {
       b
    }
 
-   def ar : GE = {
+   def ar : In = {
       import synth._
       val b = resolveBusAndIncludeParam
       In.ar( name.kr, b.numChannels )
@@ -182,11 +183,13 @@ extends ProcParamAudioOutput {
       val sig2: GE = if( b.numChannels == numCh ) {
          sig
       } else {
-         println( "WARNING: Coercing output signal from " + numCh + " into " + b.numChannels + " channels" )
-         val chans   = sig.outputs
-         List.tabulate( b.numChannels )( ch => chans( ch % numCh ))
+         /*println*/ error( "WARNING: Coercing output signal from " + numCh + " into " + b.numChannels + " channels" )
+
+//         val chans   = sig.outputs
+//         List.tabulate( b.numChannels )( ch => chans( ch % numCh ))
       }
       Out.ar( name.kr, sig2 )
+//      Out.ar( name.kr, sig )
    }
 
    def numChannels_=( n: Int ) {

@@ -32,6 +32,9 @@ import de.sciss.synth.{ audio, control, GE, Rate }
 import de.sciss.synth.proc.{ ParamSpec, Proc, ProcAnatomy, ProcDiff, ProcFactory, ProcFactoryBuilder,
    ProcEntry, ProcFilter, ProcGen, ProcGraph, ProcIdle, ProcParam, ProcParamAudio, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamControl, ProcParamScalar, RichAudioBus }
+import de.sciss.synth.aux.GraphFunction
+import de.sciss.synth.ugen.In
+import sys.error
 
 /**
  *    @version 0.12, 20-Jul-10
@@ -114,22 +117,27 @@ extends ProcFactoryBuilder {
       p
    }
 
-   protected def implicitInAr : GE = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].ar
-   protected def implicitOutAr( sig: GE ) : GE = {
-      val rate = Rate.highest( sig.outputs.map( _.rate ): _* )
-      if( (rate == audio) || (rate == control) ) {
-         Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].ar( sig )
-      } else sig
+   protected def implicitInAr : In = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].ar
+   protected def implicitOutAr[ T ]( sig: T )( implicit res: GraphFunction.Result[ T ]) {
+      res match {
+         case GraphFunction.Result.In( view ) =>
+            val in = view.apply( sig )
+//            val rate = Rate.highest( sig.outputs.map( _.rate ): _* )
+//            if( (rate == audio) || (rate == control) ) {
+               Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].ar( in )
+//            }
+         case _ =>
+      }
    }
    protected def implicitInNumCh : Int = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].numChannels
    protected def implicitOutNumCh( n: Int ) { Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].numChannels_=( n )}
 
-   def graphIn( fun: GE => GE ) : ProcGraph = {
+   def graphIn( fun: In => Any ) : ProcGraph = {
       val fullFun = () => fun( implicitInAr )
       graph( fullFun )
    }
 
-   def graphInOut( fun: GE => GE ) : ProcGraph = {
+   def graphInOut[ T : GraphFunction.Result ]( fun: In => T ) : ProcGraph = {
       val fullFun = () => {
          val in   = implicitInAr
          val out  = fun( in )
@@ -138,14 +146,14 @@ extends ProcFactoryBuilder {
       graph( fullFun )
    }
 
-   def graphOut( fun: () => GE ) : ProcGraph = {
-      val fullFun = () => implicitOutAr( fun() )
+   def graphOut[ T : GraphFunction.Result ]( thunk: => T ) : ProcGraph = {
+      val fullFun = () => implicitOutAr( thunk )
       graph( fullFun )
    }
 
-   def graph( fun: () => GE ) : ProcGraph = {
+   def graph( thunk: => Any ) : ProcGraph = {
       requireOngoing
-      val res = new GraphImpl( fun )
+      val res = new GraphImpl( thunk )
       enter( res )
       res
    }

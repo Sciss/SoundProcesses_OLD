@@ -29,6 +29,7 @@
 package de.sciss.synth.proc
 
 import de.sciss.synth.{Bus, ControlBus, AudioBus}
+import sys.error
 
 /**
  *    @version 0.11, 03-Aug-10

@@ -34,7 +34,9 @@ import de.sciss.synth.proc.{ProcRunning, ProcTxn, ProcGraph}
 /**
  *    @version 0.11, 12-Jul-10
  */
-class GraphImpl( val fun: () => GE ) extends ProcGraph {
+class GraphImpl( fun: => Unit ) extends ProcGraph {
+   def eval : Unit = fun
+
    def play( implicit tx: ProcTxn ) : ProcRunning =
       new GraphBuilderImpl( this, tx ).play
 }

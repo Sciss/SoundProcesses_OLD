@@ -13,12 +13,19 @@ import de.sciss.synth.io.{AudioFileType, SampleFormat}
  */
 class GraphBuilderImpl( graph: GraphImpl, val tx: ProcTxn )
 extends EntryBuilderImpl with ProcGraphBuilder {
-   private var buffers    = Set.empty[ ProcBuffer ]
-   private var reactions  = Set.empty[ ProcSynthReaction ]
-   private var bufCount   = 0
+   private var buffers     = Set.empty[ ProcBuffer ]
+   private var reactions   = Set.empty[ ProcSynthReaction ]
+   private var bufCount    = 0
+   private var indivCount  = 0
 
    def includeBuffer( b: ProcBuffer ) {
       buffers += b
+   }
+
+   def individuate: Int = {
+      val res = indivCount
+      indivCount += 1
+      res
    }
 
    def bufEmpty( numFrames: Int, numChannels: Int ) : ProcBuffer = {
@@ -49,7 +56,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
       implicit val t = tx
       ProcGraphBuilder.use( this ) {
          val p             = Proc.local
-         val g             = SynthGraph( graph.fun() )
+         val g             = SynthGraph( graph.eval )
 
          val server        = p.server
          val rsd           = RichSynthDef( server, g )
