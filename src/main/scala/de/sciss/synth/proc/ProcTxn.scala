@@ -28,19 +28,19 @@
 
 package de.sciss.synth.proc
 
-import de.sciss.osc.{ OSCBundle, OSCMessage }
+import de.sciss.osc.{ Bundle, Message }
 import collection.immutable.{ IndexedSeq => IIdxSeq, IntMap, Queue => IQueue }
 import collection.{ breakOut }
 import de.sciss.synth.osc.{OSCSyncedMessage, OSCSend}
-import de.sciss.synth.Server
-import actors.{DaemonActor, Actor, Futures}
+import actors.{DaemonActor, Futures}
 import concurrent.stm.{InTxnEnd, TxnExecutor, Txn, InTxn}
 import sys.error
+import de.sciss.synth.Server
 
 trait ProcTxn {
    import ProcTxn._
 
-   def add( msg: OSCMessage with OSCSend, change: Option[ (FilterMode, RichState, Boolean) ], audible: Boolean,
+   def add( msg: Message with OSCSend, change: Option[ (FilterMode, RichState, Boolean) ], audible: Boolean,
             dependancies: Map[ RichState, Boolean ] = Map.empty, noErrors: Boolean = false ) : Unit
 //   def add( player: TxnPlayer ) : Unit
 
@@ -73,7 +73,7 @@ object ProcTxn {
 
    private val actor = {
       val res = new DaemonActor {
-         def act { loop { react {
+         def act() { loop { react {
             case Fun( f ) => try {
                f()
             } catch {
@@ -83,7 +83,7 @@ object ProcTxn {
             }
          }}}
       }
-      res.start
+      res.start()
       res
    }
 
@@ -108,8 +108,8 @@ object ProcTxn {
 
    private val startTime    = System.currentTimeMillis // XXX eventually in logical time framework
 
-   private val errOffMsg   = OSCMessage( "/error", -1 )
-   private val errOnMsg    = OSCMessage( "/error", -2 )
+   private val errOffMsg   = Message( "/error", -1 )
+   private val errOnMsg    = Message( "/error", -2 )
 
    private class Impl( implicit txn: InTxn )
    extends ProcTxn with Txn.ExternalDecider /* WriteResource */ {
@@ -135,10 +135,10 @@ object ProcTxn {
       Txn.afterRollback( performRollback( _ ))
 
       private class ServerData( val server: Server ) {
-         var firstMsgs        = IQueue.empty[ OSCMessage ]
-         var secondMsgs       = IQueue.empty[ OSCMessage ]
+         var firstMsgs        = IQueue.empty[ Message ]
+         var secondMsgs       = IQueue.empty[ Message ]
          var firstAbortFuns   = IQueue.empty[ Function0[ Unit ]]
-         var secondAbortMsgs  = IQueue.empty[ OSCMessage ]
+         var secondAbortMsgs  = IQueue.empty[ Message ]
          var waitID           = -1
          var secondSent       = false
       }
@@ -172,9 +172,9 @@ val server = Server.default // XXX vergación
             if( idx <= maxSync ) {
                val syncMsg    = server.syncMsg
                val syncID     = syncMsg.id
-//               val bndl       = OSCBundle( msgs.enqueue( syncMsg ): _* )
-               val bndl       = OSCBundle( (msgs :+ syncMsg): _* )
-               val fut        = server !! (bndl, { case OSCSyncedMessage( syncID ) => true })
+//               val bndl       = Bundle( msgs.enqueue( syncMsg ): _* )
+               val bndl       = Bundle.now( (msgs :+ syncMsg): _* )
+               val fut        = server !! (bndl, { case OSCSyncedMessage( `syncID` ) => true })
                // XXX should use heuristic for timeouts
                Futures.awaitAll( 10000L, fut ) match {
                   case List( Some( true )) =>
@@ -182,7 +182,7 @@ val server = Server.default // XXX vergación
                }
             } else {
 //               players.foreach( _.play( tx )) // XXX good spot?
-               server ! OSCBundle( msgs: _* ) // XXX eventually audible could have a bundle time
+               server ! Bundle.now( msgs: _* ) // XXX eventually audible could have a bundle time
 //               true
             }
          })
@@ -195,7 +195,7 @@ val server = Server.default // XXX vergación
          datas.foreach( data => {
             import data._
             if( secondSent && secondAbortMsgs.nonEmpty ) {
-               server ! OSCBundle( secondAbortMsgs: _* )
+               server ! Bundle.now( secondAbortMsgs: _* )
             }
          })
          datas.foreach( data => {
@@ -210,7 +210,7 @@ val server = Server.default // XXX vergación
             import data._
 //            players.foreach( _.play( tx ))
             if( !secondSent && secondMsgs.nonEmpty ) {
-               server ! OSCBundle( secondMsgs: _* )
+               server ! Bundle.now( secondMsgs: _* )
             }
          })
          beforeCommitHandlers.foreach( _.apply( tx ))
@@ -232,14 +232,14 @@ val server = Server.default // XXX vergación
 //         players = players enqueue player
 //      }
 
-      def add( msg: OSCMessage with OSCSend, change: Option[ (FilterMode, RichState, Boolean) ], audible: Boolean,
-               dependancies: Map[ RichState, Boolean ], noError: Boolean = false ) : Unit = syn.synchronized {
+      def add( msg: Message with OSCSend, change: Option[ (FilterMode, RichState, Boolean) ], audible: Boolean,
+               dependancies: Map[ RichState, Boolean ], noError: Boolean = false ) { syn.synchronized {
 
          if( verbose ) println( "TXN ADD : " + (msg, change, audible, dependancies, noError) )
 
          def processDeps : Entry = {
             dependancies foreach { tup =>
-               val (state, value) = tup
+               val (state, _) = tup
                if( !stateMap.contains( state )) {
                   stateMap += state -> state.get( tx )
                }
@@ -263,7 +263,7 @@ val server = Server.default // XXX vergación
                if( changed ) state.set( value )( tx )
             }
          }).getOrElse( processDeps )
-      }
+      }}
 
       def beforeCommit( callback: ProcTxn => Unit ) {
 //         txn.beforeCommit( _ => callback( tx ))
@@ -285,7 +285,7 @@ val server = Server.default // XXX vergación
 
       // XXX IntMap lost. might eventually implement the workaround
       // by jason zaugg : http://gist.github.com/452874
-      private def establishDependancies : (Map[ Int, IIdxSeq[ OSCMessage ]], Int) = {
+      private def establishDependancies : (Map[ Int, IIdxSeq[ Message ]], Int) = {
          var topo = Topology.empty[ Entry, EntryEdge ]
 
          var clumpEdges = Map.empty[ Entry, Set[ Entry ]]
@@ -320,7 +320,7 @@ val server = Server.default // XXX vergación
          // clumping
          var clumpIdx   = 0
          var clumpMap   = Map.empty[ Entry, Int ]
-//         var clumps     = IntMap.empty[ IQueue[ OSCMessage ]]
+//         var clumps     = IntMap.empty[ IQueue[ Message ]]
          var clumps     = IntMap.empty[ List[ Entry ]]
          val audibleIdx = Int.MaxValue
          topo.vertices.foreach( targetEntry => {
@@ -345,7 +345,7 @@ val server = Server.default // XXX vergación
             println( "clump #" + idx + " : " + msgs.toList )
          })
 
-         val sorted: Map[ Int, IIdxSeq[ OSCMessage ]] = clumps mapValues { entries =>
+         val sorted: Map[ Int, IIdxSeq[ Message ]] = clumps mapValues { entries =>
             var noError = false
             entries.sortWith( (a, b) => {
                // here comes the tricky bit:
@@ -375,7 +375,7 @@ val server = Server.default // XXX vergación
       }
    }
 
-   private case class Entry( idx: Int, msg: OSCMessage with OSCSend,
+   private case class Entry( idx: Int, msg: Message with OSCSend,
                              change: Option[ (FilterMode, RichState, Boolean) ],
                              audible: Boolean, dependancies: Map[ RichState, Boolean ],
                              noError: Boolean )

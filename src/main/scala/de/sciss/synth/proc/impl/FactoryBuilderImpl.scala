@@ -28,7 +28,6 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.{ audio, control, GE, Rate }
 import de.sciss.synth.proc.{ ParamSpec, Proc, ProcAnatomy, ProcDiff, ProcFactory, ProcFactoryBuilder,
    ProcEntry, ProcFilter, ProcGen, ProcGraph, ProcIdle, ProcParam, ProcParamAudio, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamControl, ProcParamScalar, RichAudioBus }
@@ -62,24 +61,24 @@ extends ProcFactoryBuilder {
    protected var pAudioIns                  = Vector.empty[ ProcParamAudioInput ]
    protected var pAudioOuts                 = Vector.empty[ ProcParamAudioOutput ]
 
-   @inline protected def requireOngoing = require( !finished, "ProcFactory build has finished" )
+   @inline protected def requireOngoing() { require( !finished, "ProcFactory build has finished" )}
 
    def pScalar( name: String, spec: ParamSpec, default: Double ) : ProcParamScalar = {
-      requireOngoing
+      requireOngoing()
       val p = new ParamScalarImpl( name, spec, default )
       addParam( p )
       p
    }
 
    def pControl( name: String, spec: ParamSpec, default: Double ) : ProcParamControl = {
-      requireOngoing
+      requireOngoing()
       val p = new ParamControlImpl( name, spec, default )
       addParam( p )
       p
    }
 
    def pAudio( name: String, spec: ParamSpec, default: Double ) : ProcParamAudio = {
-      requireOngoing
+      requireOngoing()
       val p = new ParamAudioImpl( name, spec, default )
       addParam( p )
       p
@@ -93,7 +92,7 @@ extends ProcFactoryBuilder {
 //   }
 
    def pAudioIn( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioInput = {
-      requireOngoing
+      requireOngoing()
       pAudioIn( name, default, false )
    }
 
@@ -105,7 +104,7 @@ extends ProcFactoryBuilder {
    }
 
    def pAudioOut( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioOutput = {
-      requireOngoing
+      requireOngoing()
       pAudioOut( name, default, false )
    }
 
@@ -152,7 +151,7 @@ extends ProcFactoryBuilder {
    }
 
    def graph( thunk: => Any ) : ProcGraph = {
-      requireOngoing
+      requireOngoing()
       val res = new GraphImpl( thunk )
       enter( res )
       res
@@ -184,7 +183,7 @@ extends ProcFactoryBuilder {
    }
    
    protected def idle( fun: () => Unit ) : ProcIdle = {
-      requireOngoing
+      requireOngoing()
       val res = new IdleImpl( fun )
       enter( res )
       res
@@ -196,7 +195,7 @@ extends ProcFactoryBuilder {
    }
 
    def finish : ProcFactory = {
-      requireOngoing
+      requireOngoing()
       require( entry.isDefined, "No entry point defined" )
       if( implicitAudioIn && !paramMap.contains( "in" )) {
 //         pAudioIn( "in", None, true )

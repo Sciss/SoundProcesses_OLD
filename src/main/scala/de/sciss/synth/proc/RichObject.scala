@@ -76,7 +76,7 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
             val funs       = onEndFuns.swap( IQueue.empty )
             funs.foreach( f => try {
                f( tx )
-            } catch { case e => e.printStackTrace })
+            } catch { case e => e.printStackTrace() })
          }
       }
    }

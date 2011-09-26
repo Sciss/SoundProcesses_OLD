@@ -65,7 +65,6 @@ trait Proc extends TxnModel[ Proc.Update ] with TxnPlayer with ProcSpec {
 
    protected def emptyUpdate = Update( this, State( false ), Map.empty, Set.empty, Set.empty )
    protected def fullUpdate( implicit tx: ProcTxn ) : Update = {
-      val ctl                                                        = controls
       val ctlVals: IMap[ ProcControl, ControlValue ]                 = controls.map( c => c -> c.cv )( breakOut )
       val busConns: ISet[ ProcEdge ]                                 = outEdges 
       Update( this, state, ctlVals, busConns, Set.empty )

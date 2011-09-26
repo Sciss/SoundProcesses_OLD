@@ -28,10 +28,8 @@
 
 package de.sciss.synth.proc
 
-import de.sciss.synth
-import de.sciss.synth.{Constant, GE, ugen}
+import de.sciss.synth.{Constant, GE}
 import impl.SynthReactionImpl
-import ugen.{Mix, Impulse}
 
 /**
  * Enrichment for graph elements.

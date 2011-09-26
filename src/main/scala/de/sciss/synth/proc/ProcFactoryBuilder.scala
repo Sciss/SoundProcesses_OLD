@@ -28,7 +28,6 @@
 
 package de.sciss.synth.proc
 
-import de.sciss.synth.{ GE }
 import impl.FactoryBuilderImpl
 import de.sciss.synth.aux.GraphFunction
 import de.sciss.synth.ugen.In

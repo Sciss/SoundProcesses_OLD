@@ -33,7 +33,7 @@ import de.sciss.synth.proc.{ ParamSpec, Proc, ProcEntryBuilder, ProcParamAudio, 
    ProcParamAudioOutput, ProcParamControl, ProcParamScalar,
    ProcParamUnspecifiedException, RichAudioBus, RichBus }
 import de.sciss.synth
-import synth.{UGenSource, audio, control, GE}
+import synth.GE
 import sys.error
 
 /**

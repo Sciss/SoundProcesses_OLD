@@ -2,9 +2,9 @@ package de.sciss.synth.proc.impl
 
 import collection.breakOut
 import collection.immutable.{ Queue => IQueue }
-import de.sciss.synth.proc.{ Proc, ProcBuffer, ProcGraphBuilder, ProcParam, ProcParamAudioInput,
+import de.sciss.synth.proc.{ Proc, ProcBuffer, ProcGraphBuilder, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamFloat, ProcRunning, ProcSynthReaction, ProcTxn,
-   RichAudioBus, RichControlBus, RichSynth, RichSynthDef, TxnPlayer }
+   RichAudioBus, RichControlBus, RichSynth, RichSynthDef }
 import de.sciss.synth.{ ControlSetMap, SynthGraph }
 import de.sciss.synth.io.{AudioFileType, SampleFormat}
 

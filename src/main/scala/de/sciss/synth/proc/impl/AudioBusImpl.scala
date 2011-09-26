@@ -31,8 +31,8 @@ package de.sciss.synth.proc.impl
 import de.sciss.synth.proc.{ DurationalTransition, Glide, Instant, Proc, ProcAudioInput, ProcAudioInsertion,
    ProcAudioOutput, ProcControl, ProcDemiurg, ProcEdge, ProcParamAudioInput, ProcParamAudioOutput, ProcTxn,
    Ref, RichAudioBus, RichBus, RichSynthDef, XFade }
-import de.sciss.synth.{ audio, doNothing, freeSelf, welchShape, sinShape, varShape, addToHead, addToTail, DoneAction,
-   Env, GE, ControlSetMap => CSet, SynthGraph }
+import de.sciss.synth.{ audio, doNothing, freeSelf, welchShape, sinShape, addToHead, addToTail, DoneAction,
+   Env, GE, SynthGraph }
 import de.sciss.synth.ugen.{ EnvGen, In, Line, Out, ReplaceOut }
 import de.sciss.synth
 
@@ -152,7 +152,7 @@ extends AbstractAudioInputImpl {
 
    def stop( implicit tx: ProcTxn ) {
       if( verbose ) println( this.toString + " : stop" )
-      val wasPlaying = playingRef.swap( false )
+      /* val wasPlaying = */ playingRef.swap( false )
 //      bus foreach { rb =>
 //         tx.transit match {
 //            case xfade: XFade => bus = None // XXX ??? korrekt

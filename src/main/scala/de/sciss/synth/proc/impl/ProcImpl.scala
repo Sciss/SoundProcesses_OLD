@@ -31,12 +31,12 @@ package de.sciss.synth.proc.impl
 import collection.breakOut
 import collection.immutable.{ IndexedSeq => IIdxSeq, Set => ISet }
 import de.sciss.synth
-import de.sciss.synth.{ addToHead, addAfter, addBefore, addToTail, freeGroup,
+import de.sciss.synth.{ addToHead, addAfter, addBefore, addToTail,
    audio => arate, control => krate, scalar => irate, AddAction, Group, Server, SynthGraph }
 import de.sciss.synth.ugen.Line
 import de.sciss.synth.proc.{ ControlValue, Glide, Instant, Proc, ProcAudioBus, ProcAudioInput,
    ProcAudioOutput, ProcControl, ProcDemiurg, ProcEdge, ProcParam,
-   ProcParamAudio, ProcParamControl, ProcParamScalar, ProcParamUnspecifiedException, ProcRunning, ProcTxn, Ref,
+   ProcParamAudio, ProcParamControl, ProcParamScalar, ProcRunning, ProcTxn, Ref,
    RichAudioBus, RichGroup, RichNode, RichSynthDef, XFade }
 import sys.error
 
@@ -119,7 +119,7 @@ extends Proc {
       }
    }
 
-   private def pError( name: String ) = throw new ProcParamUnspecifiedException( name )
+//   private def pError( name: String ) = throw new ProcParamUnspecifiedException( name )
 
    def groupOption( implicit tx: ProcTxn ) : Option[ RichGroup ] = groupsRef().map( _.main )
 
@@ -322,7 +322,7 @@ extends Proc {
          import synth._
          Line.kr( dur = "$dur".ir, doneAction = freeGroup )
       })
-      val rs      = rsd.play( if( dispose ) main else back, List( "$dur" -> xfade.dur ))
+      /* val rs = */ rsd.play( if( dispose ) main else back, List( "$dur" -> xfade.dur ))
 
       // monitor fading
       backRef.set( Some( back ))
@@ -382,7 +382,7 @@ extends Proc {
          println( "WARNING: Proc.play - '" + this + "' already playing")
       } else {
          val entry = if( st.bypassed ) fact.bypassGraph else fact.entry
-         tx transit match {
+         tx.transit match {
             case xfade: XFade => coreGroup // enforce XXX ugly
             case _ =>
          }
@@ -413,7 +413,7 @@ extends Proc {
    private def stop( replay: Boolean )( implicit tx: ProcTxn ) {
       runningRef() foreach { r =>
          r.stop
-         tx transit match {
+         tx.transit match {
             case xfade: XFade => {
                xfade.markSendToBack( this, replay )
                createBackground( xfade, false )   // ok to do this repeatedly (might be even necessary)
@@ -438,7 +438,7 @@ extends Proc {
 // a used bus is set to None
 runningRef.set( None )
          disposeEdges   // important to do this after r.stop to avoid re-creating physical outputs!
-         tx transit match {
+         tx.transit match {
             case Instant => {
                groupsRef() foreach { all =>
                   all.main.free()

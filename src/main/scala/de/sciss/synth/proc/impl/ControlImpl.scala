@@ -28,7 +28,7 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.{ control, audio, scalar, freeSelf, addToTail, AudioBus, Rate, SynthGraph }
+import de.sciss.synth.{ control, audio, scalar, addToTail, AudioBus, Rate, SynthGraph }
 import de.sciss.synth.proc.{ ControlABusMapping, ControlBusMapping, ControlGliding, ControlValue, Glide, Instant,
    Proc, ProcAudioInput, ProcAudioOutput, ProcControl, ProcEdge, ProcParamFloat, ProcTxn, Ref,
    RichAudioBus, RichBus, RichControlBus, RichGroup, RichSynth, RichSynthDef, XFade }
@@ -114,7 +114,7 @@ xfade    xfade    xfade
          case Some( oldCG: ControlGliding ) => {
             transit match {
                case Instant => {
-                  val current = oldCG.currentValue
+//                  val current = oldCG.currentValue
                   oldCG.stop
                   Some( ControlValue.instant( newValue ))
                }
@@ -225,7 +225,7 @@ extends ControlGliding with ControlMappingImpl {
       val g       = graph
       val rsd     = RichSynthDef( proc.server, g )
 //      val dur     = cv.transit.asInstanceOf[ Glide ].dur // XXX not so pretty
-      val spec    = ctrl.spec
+//      val spec    = ctrl.spec
 //      val startN  = spec.unmap( /*spec.clip(*/ startValue /*)*/)
 //      val targetN = spec.unmap( targetValue )
       val rs      = rsd.play( proc.preGroup,

@@ -30,23 +30,28 @@ package de.sciss.synth.proc
 
 object SoundProcesses {
    val name          = "SoundProcesses"
-   val version       = 0.23
+   val version       = 0.30
+   val isSnapshot    = true
    val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
-   def versionString = (version + 0.001).toString.substring( 0, 4 )
+
+   def versionString = {
+      val s = (version + 0.001).toString.substring( 0, 4 )
+      if( isSnapshot ) s + "-SNAPSHOT" else s
+   }
 
    def main( args: Array[ String ]) {
       (if( args.size > 0 ) args( 0 ) else "") match {
-         case "--test2" => test2
-         case "--test3" => test3
-         case "--test4" => test4
-         case "--test5" => test5
+         case "--test2" => test2()
+         case "--test3" => test3()
+         case "--test4" => test4()
+         case "--test5" => test5()
          case _ =>
-            printInfo
-            System.exit( 1 )
+            printInfo()
+            sys.exit( 1 )
       }
    }
 
-   def printInfo {
+   def printInfo() {
       println( "\n" + name + " v" + versionString + "\n" + copyright + ". All rights reserved.\n" +
          "This is a library which cannot be executed directly.\n" )
    }
@@ -71,7 +76,7 @@ object SoundProcesses {
 //      println( "done" )
 //   }
 
-   def test5 {
+   def test5() {
       import DSL._
       import de.sciss.synth._
       import de.sciss.synth.ugen._
@@ -79,7 +84,7 @@ object SoundProcesses {
 
       Server.test { s =>
          ProcDemiurg.addServer( s )
-         s.dumpOSC(1)
+         s.dumpOSC()
          t { implicit tx =>
             val p = (gen( "test" ) {
                graph {
@@ -100,14 +105,14 @@ object SoundProcesses {
       }
    }
 
-   def test2 {
+   def test2() {
       import DSL._
       import de.sciss.synth._
       import de.sciss.synth.ugen._
       import ProcTxn.{ atomic => t }
 
       Server.test { s =>
-         s.dumpOSC(1)
+         s.dumpOSC()
          ProcDemiurg.addServer( s )
          val (p1, p2) = t { implicit tx =>
             val p1 = (gen( "Mod" ) {
@@ -141,7 +146,7 @@ object SoundProcesses {
       }
    }
 
-   def test3 {
+   def test3() {
       import DSL._
       import de.sciss.synth._
       import de.sciss.synth.ugen._
@@ -175,22 +180,22 @@ object SoundProcesses {
             collMaster ~> pMaster
 //            val topo2 = ProcDemiurg.worlds( s ).topology
             pMaster.play
-            s.dumpOSC(1)
-            val g1 = collMaster.groupOption
-            val g2 = pMaster.groupOption
+            s.dumpOSC()
+//            val g1 = collMaster.groupOption
+//            val g2 = pMaster.groupOption
             println( "JA" )
          }
       }
    }
 
-   def test4 {
+   def test4() {
       import DSL._
       import de.sciss.synth._
       import de.sciss.synth.ugen._
       import ProcTxn.{ atomic => t }
 
       Server.test { s =>
-         s.dumpOSC(1)
+         s.dumpOSC()
          ProcDemiurg.addServer( s )
          t { implicit tx =>
             val p1 = gen( "1" )({
@@ -211,21 +216,21 @@ object SoundProcesses {
                p3.play
             }
 
-            val g1 = p1.groupOption
-            val g2 = p2.groupOption
-            val g3 = p3.groupOption
+//            val g1 = p1.groupOption
+//            val g2 = p2.groupOption
+//            val g3 = p3.groupOption
             println( "JA" )
          }
       }
    }
 
-   def test {
+   def test() {
       import DSL._
       import de.sciss.synth._
       import de.sciss.synth.ugen._
 
       ProcTxn.atomic { implicit tx =>
-         val disk = gen( "Disk" ) {
+         /* val disk = */ gen( "Disk" ) {
             val pspeed  = pControl( "speed", ParamSpec( 0.1f, 10, ExpWarp ), 1 )
             val ppos    = pScalar( "pos",  ParamSpec( 0, 1 ), 0 )
             graph {
@@ -239,14 +244,14 @@ object SoundProcesses {
                val d          = VDiskIn.ar( afSpec.numChannels, bufID, speed, loop = 1 )
 //               val frame   = d.reply
 //               (frame.carry( pspeed.v * b.sampleRate ) / b.numFrames) ~> ppos
-               val liveFrame  = Integrator.ar( K2A.ar( speed ))
-               val livePos    = ((liveFrame / BufFrames.ir( bufID )) + startPos) % 1.0f
+//               val liveFrame  = Integrator.ar( K2A.ar( speed ))
+//               val livePos    = ((liveFrame / BufFrames.ir( bufID )) + startPos) % 1.0f
 //               livePos ~> ppos
                d
             }
          }
 
-         val achil = filter( "Achil") {
+         /* val achil = */ filter( "Achil") {
             val pspeed  = pAudio( "speed", ParamSpec( 0.125, 2.3511, ExpWarp ), 0.5 )
             val pmix    = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
 

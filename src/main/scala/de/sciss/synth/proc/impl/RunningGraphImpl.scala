@@ -42,8 +42,8 @@ extends ProcRunning {
 
    def anchorNode( implicit tx: ProcTxn ) : RichNode = rs
 
-   def stop( implicit tx: ProcTxn ) = {
-      tx transit match {
+   def stop( implicit tx: ProcTxn ) {
+      tx.transit match {
          case Instant      => {
             rs.free()
 // WRONG

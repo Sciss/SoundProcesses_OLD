@@ -28,15 +28,13 @@
 
 package de.sciss.synth.proc
 
-import collection.immutable.{ SortedMap => ISortedMap, SortedSet => ISortedSet }
+import collection.immutable.{SortedMap => ISortedMap}
 import de.sciss.synth.{ AudioBus, AudioRated, Bus, ControlBus, ControlRated, Rate, Server }
 
 /**
  *    @version 0.12, 18-Jul-10
  */
 sealed trait RichBus {
-   import RichBus._
-
    def server : Server
    def numChannels : Int
 
@@ -365,9 +363,7 @@ object RichBus {
    }
 
    private abstract class BasicAudioImpl extends AbstractAudioImpl {
-      import RichAudioBus._
-      
-      protected val bus       = Ref.make[ AudioBusHolder ]
+      protected val bus = Ref.make[ AudioBusHolder ]
 
       def busOption( implicit tx: ProcTxn ) = {
          val bh = bus()

@@ -5,7 +5,7 @@ import de.sciss.synth.proc.{ProcTxn, RichSynth, ProcSynthReaction, Ref, TxnPlaye
 import de.sciss.synth.osc.OSCResponder
 import de.sciss.synth.{ scalar, control, Constant, GE, Rate, SynthGraph }
 import de.sciss.synth.ugen.{ Impulse, Mix, SendReply }
-import de.sciss.osc.OSCMessage
+import de.sciss.osc.Message
 
 class SynthReactionImpl( trig: GE, values: GE, fun: Seq[ Double ] => Unit, replyID: Int )
 extends ProcSynthReaction {
@@ -29,7 +29,7 @@ extends ProcSynthReaction {
    private[proc] def create( rs: RichSynth )( implicit tx: ProcTxn ) : TxnPlayer = {
       val nodeID     = rs.node.id
       val resp       = OSCResponder {
-         case OSCMessage( "/$react", `nodeID`, `replyID`, floats @ _* ) => {
+         case Message( "/$react", `nodeID`, `replyID`, floats @ _* ) => {
             val doubles = floats.map( _.asInstanceOf[ Float ].toDouble )
             fun( doubles )
          }
