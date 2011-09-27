@@ -56,7 +56,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
       implicit val t = tx
       ProcGraphBuilder.use( this ) {
          val p             = Proc.local
-         val g             = SynthGraph( graph.eval )
+         val g             = SynthGraph( graph.eval() )
 
          val server        = p.server
          val rsd           = RichSynthDef( server, g )

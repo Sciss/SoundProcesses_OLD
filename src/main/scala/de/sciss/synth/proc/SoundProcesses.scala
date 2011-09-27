@@ -28,6 +28,11 @@
 
 package de.sciss.synth.proc
 
+import ProcTxn.{ atomic => t }
+import DSL._
+import de.sciss.synth._
+import de.sciss.synth.ugen._
+
 object SoundProcesses {
    val name          = "SoundProcesses"
    val version       = 0.30
@@ -41,10 +46,12 @@ object SoundProcesses {
 
    def main( args: Array[ String ]) {
       (if( args.size > 0 ) args( 0 ) else "") match {
+         case "--test1" => test1()
          case "--test2" => test2()
          case "--test3" => test3()
          case "--test4" => test4()
          case "--test5" => test5()
+         case "--test6" => test6()
          case _ =>
             printInfo()
             sys.exit( 1 )
@@ -76,160 +83,16 @@ object SoundProcesses {
 //      println( "done" )
 //   }
 
-   def test5() {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
-
-      Server.test { s =>
-         ProcDemiurg.addServer( s )
-         s.dumpOSC()
-         t { implicit tx =>
-            val p = (gen( "test" ) {
-               graph {
-                  val in = In.ar( NumOutputBuses.ir, 2 )
-                  val fft = FFT( bufEmpty( 1024 ).id, Mix( in ))
-                  val spec = SpecPcile.kr( fft )
-                  val smooth = Lag.kr( spec, 10 )
-                  2f.react( smooth ) { data =>
-                     val Seq( freq ) = data
-                     println( "GOT: " + freq )
-                  }
-                  0 // in
-               }
-            }).make
-            p.play
-         }
-         println( "Ok" )
-      }
-   }
-
-   def test2() {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
-
+   private def boot( code: => Unit ) {
       Server.test { s =>
          s.dumpOSC()
          ProcDemiurg.addServer( s )
-         val (p1, p2) = t { implicit tx =>
-            val p1 = (gen( "Mod" ) {
-               graph { SinOsc.ar( 2 )}
-            }).make
-            val p3 = (diff( "Silent" ) {
-               graph { _: In => Silent.ar }
-            }).make
-            val p2 = (gen( "Osc" ) {
-               val pfreq = pAudio( "freq", ParamSpec( 100, 10000, ExpWarp ), 441 )
-               graph { SinOsc.ar( pfreq.ar ) * 0.1 }
-            }).make
-            p1 ~> p3
-            p1.play; p2.play; p3.play
-            (p1, p2)
-         }
-
-         println( "\n-------------\n" )
-
-         t { implicit tx =>
-            xfade( 15 ) {
-               p1 ~> p2.control( "freq" )
-            }
-         }
-
-//         t { implicit tx =>
-//            xfade( 15 ) {
-//               p1 ~/> p2.control( "freq" )
-//            }
-//         }
+         code
       }
    }
 
-   def test3() {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
-
-      Server.test { s =>
-         ProcDemiurg.addServer( s )
-         t { implicit tx =>
-            val genDummyStereo = gen( "@" ) { graph { Silent.ar( 2 )}}
-            val fieldCollectors: Map[ Int, Proc ] = (1 to 4).map( field => {
-               val genColl = filter( field.toString ) { graph { in: GE => in }}
-               val pColl   = genColl.make
-               val pDummy  = genDummyStereo.make
-               pDummy ~> pColl
-               pColl.play
-//               pDummy.dispose
-               field -> pColl
-            })( collection.breakOut )
-            val sub        = (fieldCollectors - 4).values
-            val collMaster = fieldCollectors( 4 )
-            sub foreach { _ ~> collMaster }
-
-            // ---- master ----
-
-            val pMaster = diff( "master" )( graph { in: GE =>
-               val ctrl = HPF.ar( in, 50 )
-               val cmp  = Compander.ar( in, ctrl, (-12).dbamp, 1, 1.0/3.0 ) * 2
-               Out.ar( 0, cmp )
-            }).make
-//            val topo1 = ProcDemiurg.worlds( s ).topology
-            collMaster ~> pMaster
-//            val topo2 = ProcDemiurg.worlds( s ).topology
-            pMaster.play
-            s.dumpOSC()
-//            val g1 = collMaster.groupOption
-//            val g2 = pMaster.groupOption
-            println( "JA" )
-         }
-      }
-   }
-
-   def test4() {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
-
-      Server.test { s =>
-         s.dumpOSC()
-         ProcDemiurg.addServer( s )
-         t { implicit tx =>
-            val p1 = gen( "1" )({
-               graph { PinkNoise.ar( List( 0.2, 0.2 ))}
-            }).make
-            val p2 = diff( "2" )({
-               graph { in: GE => Out.ar( 0, in )}
-            }).make
-            val p3 = gen( "3" )({
-               graph { SinOsc.ar( List( 400, 410 )) * 0.2 }
-            }).make
-            p1 ~> p2
-            p1.play; p2.play
-
-            xfade( 15 ) {
-               p1.stop
-               p3 ~> p2
-               p3.play
-            }
-
-//            val g1 = p1.groupOption
-//            val g2 = p2.groupOption
-//            val g3 = p3.groupOption
-            println( "JA" )
-         }
-      }
-   }
-
-   def test() {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-
-      ProcTxn.atomic { implicit tx =>
+   private def test1() {
+      t { implicit tx =>
          /* val disk = */ gen( "Disk" ) {
             val pspeed  = pControl( "speed", ParamSpec( 0.1f, 10, ExpWarp ), 1 )
             val ppos    = pScalar( "pos",  ParamSpec( 0, 1 ), 0 )
@@ -237,7 +100,7 @@ object SoundProcesses {
                val path       = "/Users/rutz/Desktop/Cupola/audio_work/material/lalaConlalaQuadNoAtkSt.aif"
                val afSpec     = audioFileSpec( path )
                val startPos   = ppos.v
-               val startFrame = (startPos * afSpec.numFrames).toLong 
+               val startFrame = (startPos * afSpec.numFrames).toLong
                val buf        = bufCue( path, startFrame )
                val bufID      = buf.id
                val speed      = pspeed.kr * BufRateScale.ir( bufID )
@@ -274,6 +137,152 @@ object SoundProcesses {
                LinXFade2.ar( in, read, pmix.ar * 2 - 1 )
             }
          }
+      }
+   }
+
+   private def test2() {
+      boot {
+         val (p1, p2) = t { implicit tx =>
+            val p1 = (gen( "Mod" ) {
+               graph { SinOsc.ar( 2 )}
+            }).make
+            val p3 = (diff( "Silent" ) {
+               graph { _: In => Silent.ar }
+            }).make
+            val p2 = (gen( "Osc" ) {
+               val pfreq = pAudio( "freq", ParamSpec( 100, 10000, ExpWarp ), 441 )
+               graph { SinOsc.ar( pfreq.ar ) * 0.1 }
+            }).make
+            p1 ~> p3
+            p1.play; p2.play; p3.play
+            (p1, p2)
+         }
+
+         println( "\n-------------\n" )
+
+         t { implicit tx =>
+            xfade( 15 ) {
+               p1 ~> p2.control( "freq" )
+            }
+         }
+
+//         t { implicit tx =>
+//            xfade( 15 ) {
+//               p1 ~/> p2.control( "freq" )
+//            }
+//         }
+      }
+   }
+
+   private def test3() {
+      boot {
+         t { implicit tx =>
+            val genDummyStereo = gen( "@" ) { graph { Silent.ar( 2 )}}
+            val fieldCollectors: Map[ Int, Proc ] = (1 to 4).map( field => {
+               val genColl = filter( field.toString ) { graph { in: GE => in }}
+               val pColl   = genColl.make
+               val pDummy  = genDummyStereo.make
+               pDummy ~> pColl
+               pColl.play
+//               pDummy.dispose
+               field -> pColl
+            })( collection.breakOut )
+            val sub        = (fieldCollectors - 4).values
+            val collMaster = fieldCollectors( 4 )
+            sub foreach { _ ~> collMaster }
+
+            // ---- master ----
+
+            val pMaster = diff( "master" )( graph { in: GE =>
+               val ctrl = HPF.ar( in, 50 )
+               val cmp  = Compander.ar( in, ctrl, (-12).dbamp, 1, 1.0/3.0 ) * 2
+               Out.ar( 0, cmp )
+            }).make
+//            val topo1 = ProcDemiurg.worlds( s ).topology
+            collMaster ~> pMaster
+//            val topo2 = ProcDemiurg.worlds( s ).topology
+            pMaster.play
+//            s.dumpOSC()
+//            val g1 = collMaster.groupOption
+//            val g2 = pMaster.groupOption
+            println( "JA" )
+         }
+      }
+   }
+
+   private def test4() {
+      boot {
+         t { implicit tx =>
+            val p1 = gen( "1" )({
+               graph { PinkNoise.ar( List( 0.2, 0.2 ))}
+            }).make
+            val p2 = diff( "2" )({
+               graph { in: GE => Out.ar( 0, in )}
+            }).make
+            val p3 = gen( "3" )({
+               graph { SinOsc.ar( List( 400, 410 )) * 0.2 }
+            }).make
+            p1 ~> p2
+            p1.play; p2.play
+
+            xfade( 15 ) {
+               p1.stop
+               p3 ~> p2
+               p3.play
+            }
+
+//            val g1 = p1.groupOption
+//            val g2 = p2.groupOption
+//            val g3 = p3.groupOption
+            println( "JA" )
+         }
+      }
+   }
+
+   private def test5() {
+      boot {
+         t { implicit tx =>
+            val p = (gen( "test" ) {
+               graph {
+                  val in = In.ar( NumOutputBuses.ir, 2 )
+                  val fft = FFT( bufEmpty( 1024 ).id, Mix( in ))
+                  val spec = SpecPcile.kr( fft )
+                  val smooth = Lag.kr( spec, 10 )
+                  2f.react( smooth ) { data =>
+                     val Seq( freq ) = data
+                     println( "GOT: " + freq )
+                  }
+                  0 // in
+               }
+            }).make
+            p.play
+         }
+         println( "Ok" )
+      }
+   }
+
+   private def test6() {
+      boot {
+         t { implicit tx =>
+            val f1 = gen( "gen" ) {
+               graph {
+//println( "AQUI : Pink" )
+                  PinkNoise.ar( Seq( 0.2, 0.2 ))
+               }
+            }
+//            val f2 = diff( "diff" ) {
+//               graph { in: In =>
+//println( "AQUI : Out" )
+//                  Out.ar( 0, in )
+//               }
+//            }
+            val p1 = f1.make
+//            val p2 = f2.make
+//            p1 ~> p2
+            p1.play
+//            p2.play
+         }
+         println( "Ok" )
       }
    }
 }

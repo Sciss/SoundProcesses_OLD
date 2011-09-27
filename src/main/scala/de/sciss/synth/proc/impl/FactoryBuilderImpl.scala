@@ -132,8 +132,8 @@ extends ProcFactoryBuilder {
    protected def implicitOutNumCh( n: Int ) { Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].numChannels_=( n )}
 
    def graphIn( fun: In => Any ) : ProcGraph = {
-      val fullFun = () => fun( implicitInAr )
-      graph( fullFun )
+      val fullFun = () => { fun( implicitInAr ); () }
+      fullGraph( fullFun )
    }
 
    def graphInOut[ T : GraphFunction.Result ]( fun: In => T ) : ProcGraph = {
@@ -142,23 +142,30 @@ extends ProcFactoryBuilder {
          val out  = fun( in )
          implicitOutAr( out )
       }
-      graph( fullFun )
+      fullGraph( fullFun )
    }
 
    def graphOut[ T : GraphFunction.Result ]( thunk: => T ) : ProcGraph = {
-      val fullFun = () => implicitOutAr( thunk )
-      graph( fullFun )
+      val fullFun = () => {
+// println( "graphOut " + name )
+         implicitOutAr( thunk )
+      }
+      fullGraph( fullFun )
    }
 
    def graph( thunk: => Any ) : ProcGraph = {
+      fullGraph( () => thunk )
+   }
+
+   private def fullGraph( fun: () => Unit ) : ProcGraph = {
       requireOngoing()
-      val res = new GraphImpl( thunk )
+      val res = new GraphImpl( fun )
       enter( res )
       res
    }
 
    def idleIn( fun: Int => Any ) : ProcIdle = {
-      val fullFun: Function0[ Unit ] = () => fun( implicitInNumCh )
+      val fullFun: () => Unit = () => fun( implicitInNumCh )
       idle( fullFun )
    }
    
