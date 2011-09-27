@@ -32,9 +32,6 @@ import collection.immutable.{ IndexedSeq => IIdxSeq, Set => ISet }
 import de.sciss.synth.{addAfter, addBefore, Group, Server, SynthDef, SynthGraph}
 import sys.error
 
-/**
- *    @version 0.12, 06-Jul-10
- */
 object ProcWorld {
 //   case class ProcsRemoved( procs: Proc* )
 //   case class ProcsAdded( procs: Proc* )
@@ -217,6 +214,7 @@ object ProcDemiurg extends TxnModel[ ProcDemiurgUpdate ] { // ( val server: Serv
    def getSynthDef( server: Server, graph: SynthGraph )( implicit tx: ProcTxn ) : RichSynthDef = syn.synchronized {
       val w    = worlds( server )
       w.synthGraphs().get( graph ).getOrElse({
+println( "Graph: " + graph )
          val name = "proc" + nextDefID
          val rd   = RichSynthDef( server, SynthDef( name, graph.expand ))
          w.synthGraphs.transform( _ + (graph -> rd) )
