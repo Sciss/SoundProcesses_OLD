@@ -28,7 +28,6 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.GE
 import de.sciss.synth.proc.{ProcRunning, ProcTxn, ProcGraph}
 
 /**
