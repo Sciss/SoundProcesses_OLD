@@ -1,5 +1,9 @@
-h2. SoundProcesses ==<small>-- version 0.12 (built 17-jul-10) --</small>==
+h2. SoundProcesses
 
 h3. statement
 
-SoundProcesses is an extension for ScalaCollider to describe, create and manage sound processes. It is (C)opyright 2008-2010 by Hanns Holger Rutz. All rights reserved. SoundProcesses is released under the "GNU General Public License":http://github.com/Sciss/SoundProcesses/blob/master/licenses/SoundProcesses-License.txt and comes with absolutely no warranties. To contact the author, send an email to @contact at sciss.de@
+SoundProcesses is an extension for ScalaCollider to describe, create and manage sound processes. It is (C)opyright 2010-2011 by Hanns Holger Rutz. All rights reserved. SoundProcesses is released under the "GNU General Public License":http://github.com/Sciss/SoundProcesses/blob/master/licenses/SoundProcesses-License.txt and comes with absolutely no warranties. To contact the author, send an email to @contact at sciss.de@
+
+h3. compilation
+
+SoundProcesses 0.30-SNAPSHOT builds with xsbt (sbt 0.10) and Scala 2.9.1. Dependencies (ScalaCollider and Scala-STM) are downloaded via @xsbt update@.
