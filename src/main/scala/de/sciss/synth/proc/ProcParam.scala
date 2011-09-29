@@ -28,8 +28,8 @@
 
 package de.sciss.synth.proc
 
-import de.sciss.synth.GE
 import de.sciss.synth.ugen.{Out, In}
+import de.sciss.synth.{UGenSource, GE}
 
 /**
  *    @version 0.12, 01-Jul-10
@@ -77,7 +77,7 @@ trait ProcParamAudioInput extends ProcParamAudioBus {
 
 trait ProcParamAudioOutput extends ProcParamAudioBus {
    // ---- scope: graph ----
-   def ar( sig: GE ) : Out // GE
+   def ar( sig: GE ) : UGenSource.ZeroOut // GE // Out // GE
 //   def numChannels : Int
    def numChannels_=( n: Int ) : Unit
 }

@@ -52,6 +52,7 @@ object SoundProcesses {
          case "--test4" => test4()
          case "--test5" => test5()
          case "--test6" => test6()
+         case "--test7" => test7()
          case _ =>
             printInfo()
             sys.exit( 1 )
@@ -283,6 +284,46 @@ object SoundProcesses {
 //            p2.play
          }
          println( "Ok" )
+      }
+   }
+
+   private def test7() {
+      Server.test { s =>
+         ProcDemiurg.addServer( s )
+         val (g, f, d) = t { implicit tx =>
+            val gf = gen( "Sprink" ) {
+               graph {
+                  Dust.ar( Seq( 200, 400 ))
+               }
+            }
+
+            val ff = filter( "Filt" ) {
+               graph { in: In =>
+                  val hpf = HPF.ar( in, 8000 )
+                  hpf
+               }
+            }
+
+            val df = diff( "Out" ) {
+                val pout  = pAudioOut( "out", Some( RichBus.soundOut( s, 2 )))
+                graph { in: In =>
+                   pout.ar( in )
+                }
+            }
+
+            val g = gf.make
+            val d = df.make
+            val f = ff.make
+            g ~> d
+//            g.play
+            d.play
+            (g, f, d)
+         }
+
+         t { implicit tx =>
+            g ~| f |> d
+            f.play
+         }
       }
    }
 }

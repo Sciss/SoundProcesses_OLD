@@ -374,7 +374,7 @@ object RichBus {
    private class AudioImpl( val server: Server, val numChannels: Int ) extends BasicAudioImpl {
       import RichAudioBus.{ User => AU }
 
-      override def toString = "sh-abus@" + hashCode
+      override def toString = "sh-abus(numChannels=" + numChannels + ")@" + hashCode
 
       def addReader( u: AU )( implicit tx: ProcTxn ) {
          val rs   = readers()
@@ -501,7 +501,7 @@ object RichBus {
    private class TempAudioImpl( val server: Server, val numChannels: Int ) extends BasicAudioImpl {
       import RichAudioBus.{ User => AU }
 
-      override def toString = "tmp-abus@" + hashCode
+      override def toString = "tmp-abus(numChannels=" + numChannels + ")@" + hashCode
 
       def addReader( u: AU )( implicit tx: ProcTxn ) { add( readers, writers, u )}
       def addWriter( u: AU )( implicit tx: ProcTxn ) { add( writers, readers, u )}
@@ -547,7 +547,7 @@ object RichBus {
       private val readers  = Ref( Set.empty[ CU ])
       private val writers  = Ref( Set.empty[ CU ])
 
-      override def toString = "cbus@" + hashCode
+      override def toString = "cbus(numChannels=" + numChannels + ")@" + hashCode
 
       def busOption( implicit tx: ProcTxn ) = {
          val bh = bus()
