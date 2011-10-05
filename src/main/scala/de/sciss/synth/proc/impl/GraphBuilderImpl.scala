@@ -118,6 +118,8 @@ extends EntryBuilderImpl with ProcGraphBuilder {
 
          bufsZipped foreach { tup =>
             val (b, rb) = tup
+// DEBUG
+//println( "disposeWith : " + b )
             b.disposeWith( rb, rs )        // XXX should also go in RunningGraphImpl
          }
          new RunningGraphImpl( rs, accMap, morePlayers )

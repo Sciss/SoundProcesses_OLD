@@ -71,6 +71,8 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
    // ---- constructor ----
    node.onEnd {
       ProcTxn.atomic { implicit tx =>
+// DEBUG
+//println( "onEnd : " + node )
          isOnline.set( false )
          if( onEndFuns().nonEmpty ) ProcTxn.spawnAtomic { implicit tx =>
             val funs       = onEndFuns.swap( IQueue.empty )
