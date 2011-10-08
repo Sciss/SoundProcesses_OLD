@@ -224,24 +224,14 @@ extends ControlGliding with ControlMappingImpl {
    def play( implicit tx: ProcTxn ) {
       val g       = graph
       val rsd     = RichSynthDef( proc.server, g )
-//      val dur     = cv.transit.asInstanceOf[ Glide ].dur // XXX not so pretty
-//      val spec    = ctrl.spec
-//      val startN  = spec.unmap( /*spec.clip(*/ startValue /*)*/)
-//      val targetN = spec.unmap( targetValue )
       val rs      = rsd.play( proc.preGroup,
          List( "$start" -> startNorm, "$stop" -> targetNorm, "$dur" -> glide.dur ))
 
       synth = Some( rs )
-//      val oldSynth = synth.swap( Some( rs ))
-//      addMapBusConsumers   // requires that synth has been assigned!
-//      oldSynth.foreach( _.free( true ))
-//println( "Gliding play " + ctrl )
 
-      rs.onEnd { implicit tx =>
-//println( "Gliding end " + ctrl + " ; " + synth + " / " + rs )
+      rs.onEndTxn { implicit tx =>
          synth.foreach( rs2 => if( rs == rs2 ) {
-//            synth.set( None )( tx0 )
-            ctrl.glidingDone  // invokes stop and hence removeMapBusConsumers!
+            ctrl.glidingDone
          })
       }
    }

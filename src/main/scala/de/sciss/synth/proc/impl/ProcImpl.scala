@@ -326,10 +326,8 @@ extends Proc {
 
       // monitor fading
       backRef.set( Some( back ))
-      back.onEnd { tx0 =>
-//println( "BACK REF END : LOOKING FOR " + back + " ; FOUND " + backRef()( tx0 ))
+      back.onEndTxn { tx0 =>
          if( backRef()( tx0 ) == Some( back )) {
-//println( "---> WAS THIS ONE" )
             state_=( state( tx0 ).copy( fading = false ))( tx0 )
             backRef.set( None )( tx0 )
          }

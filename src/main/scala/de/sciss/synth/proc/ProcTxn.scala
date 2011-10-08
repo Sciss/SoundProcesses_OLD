@@ -87,8 +87,16 @@ object ProcTxn {
       res
    }
 
+   /**
+    * Defers the execution of a transactional function to a dedicated
+    * actor. This may be needed with the current implementation of
+    * ScalaCollider's OSCResponders.
+    *
+    * It is forbidden to call this method from within an active transaction,
+    * as it might result in the actor receiving multiple commands if a transaction is retried.
+    */
    def spawnAtomic( block: ProcTxn => Unit ) {
-//      Actor.actor( atomic( block ))
+      require( Txn.findCurrent.isEmpty, "Do not spawn future transactions inside a transaction" )
       actor ! Fun( () => atomic( block ))
    }
 

@@ -36,8 +36,7 @@ extends ProcSynthReaction {
 //         case m => println( "<not> : " + m )
       }
       val player = new Player( resp )
-//      tx.add( player )
-      rs.onEnd { implicit tx => player.stop }
+      rs.onEndTxn { implicit tx => player.stop }
       player.play
       player
    }

@@ -50,7 +50,8 @@ class BufferEmptyImpl( val uniqueID: Int, numFrames: Int, val numChannels: Int )
    }
 
    private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) {
-      rs.onEnd { tx => rb.server ! rb.buf.freeMsg } // XXX update RichBuffer fields !
+//      rs.onEnd { tx => rb.server ! rb.buf.freeMsg } // ONEND
+      rs.onEnd { rb.server ! rb.buf.freeMsg } // XXX update RichBuffer fields !
    }
 }
 
@@ -75,7 +76,8 @@ class BufferCueImpl( val uniqueID: Int, path: String, startFrame: Long ) extends
    }
 
    private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) {
-      rs.onEnd { tx => rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // XXX update RichBuffer fields !
+//      rs.onEnd { tx => rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // ONEND
+      rs.onEnd { rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )}
    }
 }
 
@@ -90,6 +92,7 @@ class BufferRecordImpl( val uniqueID: Int, path: String, val numChannels: Int,
    }
 
    private[proc] def disposeWith( rb: RichBuffer, rs: RichSynth )( implicit tx: ProcTxn ) {
-      rs.onEnd { tx => rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // XXX update RichBuffer fields !
+//      rs.onEnd { tx => rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // ONEND
+      rs.onEnd { rb.server ! rb.buf.closeMsg( rb.buf.freeMsg )} // XXX update RichBuffer fields !
    }
 }

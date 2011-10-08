@@ -233,13 +233,13 @@ object RichBus {
 
    def soundIn( server: Server, numChannels: Int, offset: Int = 0 ) : RichAudioBus = {
       val o = server.options
-      require( offset +  numChannels <= o.inputBusChannels )
+      require( offset +  numChannels <= o.inputBusChannels, "soundIn - offset is beyond allocated hardware channels" )
       FixedImpl( new AudioBus( server, o.outputBusChannels, numChannels + offset ))
    }
 
    def soundOut( server: Server, numChannels: Int, offset: Int = 0 ) : RichAudioBus = {
       val o = server.options
-      require( offset + numChannels <= o.outputBusChannels )
+      require( offset + numChannels <= o.outputBusChannels, "soundOut - offset is beyond allocated hardware channels" )
       FixedImpl( new AudioBus( server, offset, numChannels ))
    }
 
