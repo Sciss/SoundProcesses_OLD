@@ -65,6 +65,7 @@ object ProcTxn {
    case object RequiresChange extends FilterMode
 
    var verbose = false
+   var timeoutFun : () => Unit = () => ()
 
 //   private val localVar = new ThreadLocal[ ProcTxn ]
 //   def local : ProcTxn = localVar.get
@@ -186,7 +187,10 @@ val server = Server.default // XXX vergación
                // XXX should use heuristic for timeouts
                Futures.awaitAll( 10000L, fut ) match {
                   case List( Some( true )) =>
-                  case _ => fut.revoke; error( "Timeout" )
+                  case _ =>
+                     fut.revoke
+                     timeoutFun()
+                     error( "Timeout" )
                }
             } else {
 //               players.foreach( _.play( tx )) // XXX good spot?
