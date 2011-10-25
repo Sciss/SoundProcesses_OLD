@@ -28,13 +28,16 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.GE
 import de.sciss.synth.proc.{ProcRunning, ProcTxn, ProcGraph}
 
 /**
  *    @version 0.11, 12-Jul-10
  */
-class GraphImpl( val fun: () => GE ) extends ProcGraph {
+class GraphImpl( body: () => Unit ) extends ProcGraph {
+   def eval() {
+      body.apply()
+   }
+
    def play( implicit tx: ProcTxn ) : ProcRunning =
       new GraphBuilderImpl( this, tx ).play
 }

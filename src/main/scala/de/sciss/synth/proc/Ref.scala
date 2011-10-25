@@ -28,7 +28,7 @@
 
 package de.sciss.synth.proc
 
-import concurrent.stm.{Txn, InTxn, Ref => CRef, TxnLocal => CTxnLocal}
+import concurrent.stm.{Txn, Ref => CRef, TxnLocal => CTxnLocal}
 
 /**
  *    SoundProcesses's Ref wraps CCSTM's in order to isolate the rest of the
@@ -90,13 +90,13 @@ object Ref {
 
    private class Impl[ T ]( c: CRef[ T ]) extends Ref[ T ] {
       def apply()( implicit tx: ProcTxn ) : T  = c.apply()( tx.ccstm )
-      def set( v: T )( implicit tx: ProcTxn ) : Unit = c.set( v )( tx.ccstm )
+      def set( v: T )( implicit tx: ProcTxn ) { c.set( v )( tx.ccstm )}
       def swap( v: T )( implicit tx: ProcTxn ) : T = c.swap( v )( tx.ccstm )
-      def transform( f: T => T )( implicit tx: ProcTxn ) : Unit = c.transform( f )( tx.ccstm )
+      def transform( f: T => T )( implicit tx: ProcTxn ) { c.transform( f )( tx.ccstm )}
       def transformIfDefined( pf: PartialFunction[ T, T ])( implicit tx: ProcTxn ) : Boolean =
          c.transformIfDefined( pf )( tx.ccstm )
 
-      def +=( rhs: T )( implicit tx: ProcTxn, num: Numeric[ T ]): Unit = c.+=( rhs )( tx.ccstm, num )   
+      def +=( rhs: T )( implicit tx: ProcTxn, num: Numeric[ T ]) { c.+=( rhs )( tx.ccstm, num )}
 
       override def toString = c.toString
    }
@@ -114,9 +114,9 @@ object Ref {
 
       protected def touched( tx: ProcTxn ) : Unit
 
-      override def set( v: T )( implicit tx: ProcTxn ) : Unit = { touch( tx ); super.set( v )}
+      override def set( v: T )( implicit tx: ProcTxn ) { touch( tx ); super.set( v )}
       override def swap( v: T )( implicit tx: ProcTxn ) : T = { touch( tx ); super.swap( v )}
-      override def transform( f: T => T )( implicit tx: ProcTxn ) : Unit = { touch( tx ); super.transform( f )}
+      override def transform( f: T => T )( implicit tx: ProcTxn ) { touch( tx ); super.transform( f )}
       override def transformIfDefined( pf: PartialFunction[ T, T ])( implicit tx: ProcTxn ) : Boolean = {
          touch( tx ); super.transformIfDefined( pf )
       }
@@ -165,7 +165,7 @@ object TxnLocal {
 
    private class Impl[ T ]( c: CTxnLocal[ T ]) extends TxnLocal[ T ] {
       def apply()( implicit tx: ProcTxn ) : T = c.get( tx.ccstm )
-      def set( v: T )( implicit tx: ProcTxn ) : Unit = c.set( v )( tx.ccstm )
+      def set( v: T )( implicit tx: ProcTxn ) { c.set( v )( tx.ccstm )}
       def swap( v: T )( implicit tx: ProcTxn ) : T = {
 //         // currently not implemented in CTxnLocal
 //         val oldV = apply

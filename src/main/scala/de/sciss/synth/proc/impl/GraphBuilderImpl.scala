@@ -2,10 +2,10 @@ package de.sciss.synth.proc.impl
 
 import collection.breakOut
 import collection.immutable.{ Queue => IQueue }
-import de.sciss.synth.proc.{ Proc, ProcBuffer, ProcGraphBuilder, ProcParam, ProcParamAudioInput,
+import de.sciss.synth.proc.{ Proc, ProcBuffer, ProcGraphBuilder, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamFloat, ProcRunning, ProcSynthReaction, ProcTxn,
-   RichAudioBus, RichControlBus, RichSynth, RichSynthDef, TxnPlayer }
-import de.sciss.synth.{ ControlSetMap, SingleControlSetMap, SynthGraph }
+   RichAudioBus, RichControlBus, RichSynth, RichSynthDef }
+import de.sciss.synth.{ ControlSetMap, SynthGraph }
 import de.sciss.synth.io.{AudioFileType, SampleFormat}
 
 /**
@@ -13,12 +13,19 @@ import de.sciss.synth.io.{AudioFileType, SampleFormat}
  */
 class GraphBuilderImpl( graph: GraphImpl, val tx: ProcTxn )
 extends EntryBuilderImpl with ProcGraphBuilder {
-   private var buffers    = Set.empty[ ProcBuffer ]
-   private var reactions  = Set.empty[ ProcSynthReaction ]
-   private var bufCount   = 0
+   private var buffers     = Set.empty[ ProcBuffer ]
+   private var reactions   = Set.empty[ ProcSynthReaction ]
+   private var bufCount    = 0
+   private var indivCount  = 0
 
    def includeBuffer( b: ProcBuffer ) {
       buffers += b
+   }
+
+   def individuate: Int = {
+      val res = indivCount
+      indivCount += 1
+      res
    }
 
    def bufEmpty( numFrames: Int, numChannels: Int ) : ProcBuffer = {
@@ -49,7 +56,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
       implicit val t = tx
       ProcGraphBuilder.use( this ) {
          val p             = Proc.local
-         val g             = SynthGraph( graph.fun() )
+         val g             = SynthGraph( graph.eval() )
 
          val server        = p.server
          val rsd           = RichSynthDef( server, g )
@@ -63,7 +70,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
                val name = pFloat.name
                val cv   = p.control( name ).cv
                cv.mapping match {
-                  case None => setMaps :+= SingleControlSetMap( name, cv.target.toFloat )
+                  case None => setMaps :+= ControlSetMap.Single( name, cv.target.toFloat )
                   case Some( m ) => m.mapBus match {
                      case rab: RichAudioBus => {
                         accessories = accessories.enqueue( rs => AudioBusPlayerImpl( m, rs.map( rab -> name )))
@@ -71,7 +78,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
                      }
                      case rcb: RichControlBus => {
                         println( "WARNING: Mapping to control bus not yet supported" )
-                        setMaps :+= SingleControlSetMap( name, cv.target.toFloat )
+                        setMaps :+= ControlSetMap.Single( name, cv.target.toFloat )
                      }
                   }
                }
@@ -98,7 +105,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
          val (target, addAction) = p.runningTarget( false )
          val bufs          = bufSeq.map( _.create( server ))
          val bufsZipped    = bufSeq.zip( bufs )
-         setMaps ++= bufsZipped.map( tup => SingleControlSetMap( tup._1.controlName, tup._2.buf.id ))
+         setMaps ++= bufsZipped.map( tup => ControlSetMap.Single( tup._1.controlName, tup._2.buf.id ))
          val rs = rsd.play( target, setMaps, addAction, bufs )
          val morePlayers   = reactions.map( _.create( rs ))
 
@@ -111,6 +118,8 @@ extends EntryBuilderImpl with ProcGraphBuilder {
 
          bufsZipped foreach { tup =>
             val (b, rb) = tup
+// DEBUG
+//println( "disposeWith : " + b )
             b.disposeWith( rb, rs )        // XXX should also go in RunningGraphImpl
          }
          new RunningGraphImpl( rs, accMap, morePlayers )

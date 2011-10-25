@@ -29,7 +29,7 @@
 package de.sciss.synth.proc
 
 import collection.breakOut
-import collection.immutable.{ Queue => IQueue }
+import collection.immutable.{IndexedSeq => IIdxSeq}
 import ProcTxn._
 import de.sciss.synth.{ addToHead, AddAction, Buffer, ControlABusMap, ControlKBusMap, ControlSetMap,
    Group, Node, Server, Synth, SynthDef, SynthGraph }
@@ -64,19 +64,41 @@ case class RichBuffer( buf: Buffer ) extends RichObject {
    }
 }
 
+object RichNode {
+   private val EmptyOnEnd = new OnEnd( IIdxSeq.empty, IIdxSeq.empty )
+   private final case class OnEnd( direct: IIdxSeq[ () => Unit ], inTxn: IIdxSeq[ ProcTxn => Unit ]) {
+      def nonEmpty = direct.nonEmpty || inTxn.nonEmpty
+   }
+}
 abstract class RichNode( val initOnline : Boolean ) extends RichObject {
+   import RichNode._
+
    val isOnline: RichState = new RichState( this, "isOnline", initOnline )
-   private val onEndFuns   = Ref( IQueue.empty[ Function1[ ProcTxn, Unit ]])
+//   private val onEndFuns   = Ref( IQueue.empty[ Function1[ ProcTxn, Unit ]])
+   private val onEndFuns   = Ref( EmptyOnEnd )
 
    // ---- constructor ----
    node.onEnd {
       ProcTxn.atomic { implicit tx =>
          isOnline.set( false )
-         if( onEndFuns().nonEmpty ) ProcTxn.spawnAtomic { implicit tx =>
-            val funs       = onEndFuns.swap( IQueue.empty )
-            funs.foreach( f => try {
-               f( tx )
-            } catch { case e => e.printStackTrace })
+         val e = onEndFuns.swap( EmptyOnEnd )
+         if( e.nonEmpty ) {
+            tx.afterCommit { _ =>
+               if( e.inTxn.nonEmpty ) ProcTxn.spawnAtomic { implicit tx =>
+                  e.inTxn.foreach { f => try {
+                     f( tx )
+                  } catch {
+                     case ex => ex.printStackTrace()
+                  }}
+               }
+               if( e.direct.nonEmpty ) {
+                  e.direct.foreach { f => try {
+                     f()
+                  } catch {
+                     case ex => ex.printStackTrace()
+                  }}
+               }
+            }
          }
       }
    }
@@ -90,24 +112,33 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
 //      }
 //   }
 
-   def onEnd( fun: ProcTxn => Unit )( implicit tx: ProcTxn ) {
-      onEndFuns transform { queue =>
-//         if( queue.isEmpty ) node.onEnd {
-//            ProcTxn.spawnAtomic { implicit tx =>
-//// since we are now executing the txn only when there are client
-//// onEnd functions, it doesn't make sense to re-set the isOnline.
-//// i don't think it should be used anyways, as nodes are
-//// better created anew each time instead of reusing old ids.
-////               val wasOnline  = isOnline.swap( false )
-//               val funs       = onEndFuns.swap( IQueue.empty )
-//               funs.foreach( f => try {
-//                  f( tx )
-//               } catch { case e => e.printStackTrace })
-//            }
-//         }
-         queue enqueue fun
-      }
+   def onEndTxn( fun: ProcTxn => Unit )( implicit tx: ProcTxn ) {
+      onEndFuns.transform { e => e.copy( inTxn = e.inTxn :+ fun )}
    }
+
+   def onEnd( code: => Unit )( implicit tx: ProcTxn ) {
+      onEndFuns.transform { e => e.copy( direct = e.direct :+ (() => code) )}
+   }
+
+////   def onEnd( fun: ProcTxn => Unit )( implicit tx: ProcTxn )
+//   def onEnd( code: => Unit )( implicit tx: ProcTxn ) {
+//      onEndFuns.transform { queue =>
+////         if( queue.isEmpty ) node.onEnd {
+////            ProcTxn.spawnAtomic { implicit tx =>
+////// since we are now executing the txn only when there are client
+////// onEnd functions, it doesn't make sense to re-set the isOnline.
+////// i don't think it should be used anyways, as nodes are
+////// better created anew each time instead of reusing old ids.
+//////               val wasOnline  = isOnline.swap( false )
+////               val funs       = onEndFuns.swap( IQueue.empty )
+////               funs.foreach( f => try {
+////                  f( tx )
+////               } catch { case e => e.printStackTrace })
+////            }
+////         }
+//         queue.enqueue( () => code )
+//      }
+//   }
 
    def node: Node
 
@@ -171,7 +202,7 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
 
    private def registerSetter( bns: BusNodeSetter )( implicit tx: ProcTxn ) {
       bns.add
-      onEnd { tx0 => bns.remove( tx0 )}
+      onEndTxn { tx0 => bns.remove( tx0 )}
    }
 
    def free( audible: Boolean = true )( implicit tx: ProcTxn ) {

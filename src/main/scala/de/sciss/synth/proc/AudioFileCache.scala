@@ -54,7 +54,7 @@ object AudioFileCache {
       }
    }
 
-   def clear : Unit = sync.synchronized { map.clear }
+   def clear() { sync.synchronized { map.clear() }}
 
    private case class Entry( modified: Long, spec: AudioFileSpec )
 }

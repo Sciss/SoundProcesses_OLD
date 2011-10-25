@@ -28,12 +28,13 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.{ control, audio, scalar, freeSelf, addToTail, AudioBus, Rate, SynthGraph }
+import de.sciss.synth.{ control, audio, scalar, addToTail, AudioBus, Rate, SynthGraph }
 import de.sciss.synth.proc.{ ControlABusMapping, ControlBusMapping, ControlGliding, ControlValue, Glide, Instant,
    Proc, ProcAudioInput, ProcAudioOutput, ProcControl, ProcEdge, ProcParamFloat, ProcTxn, Ref,
    RichAudioBus, RichBus, RichControlBus, RichGroup, RichSynth, RichSynthDef, XFade }
 import de.sciss.synth.ugen.{ A2K, Clip, In, Line, Mix, Out }
 import de.sciss.{ synth => syn }
+import sys.error
 
 /**
  *    @version 0.12, 03-Aug-10
@@ -113,7 +114,7 @@ xfade    xfade    xfade
          case Some( oldCG: ControlGliding ) => {
             transit match {
                case Instant => {
-                  val current = oldCG.currentValue
+//                  val current = oldCG.currentValue
                   oldCG.stop
                   Some( ControlValue.instant( newValue ))
                }
@@ -223,24 +224,14 @@ extends ControlGliding with ControlMappingImpl {
    def play( implicit tx: ProcTxn ) {
       val g       = graph
       val rsd     = RichSynthDef( proc.server, g )
-//      val dur     = cv.transit.asInstanceOf[ Glide ].dur // XXX not so pretty
-      val spec    = ctrl.spec
-//      val startN  = spec.unmap( /*spec.clip(*/ startValue /*)*/)
-//      val targetN = spec.unmap( targetValue )
       val rs      = rsd.play( proc.preGroup,
          List( "$start" -> startNorm, "$stop" -> targetNorm, "$dur" -> glide.dur ))
 
       synth = Some( rs )
-//      val oldSynth = synth.swap( Some( rs ))
-//      addMapBusConsumers   // requires that synth has been assigned!
-//      oldSynth.foreach( _.free( true ))
-//println( "Gliding play " + ctrl )
 
-      rs.onEnd { implicit tx =>
-//println( "Gliding end " + ctrl + " ; " + synth + " / " + rs )
+      rs.onEndTxn { implicit tx =>
          synth.foreach( rs2 => if( rs == rs2 ) {
-//            synth.set( None )( tx0 )
-            ctrl.glidingDone  // invokes stop and hence removeMapBusConsumers!
+            ctrl.glidingDone
          })
       }
    }

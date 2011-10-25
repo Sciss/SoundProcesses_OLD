@@ -28,10 +28,12 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.{ audio, control, GE, Rate }
 import de.sciss.synth.proc.{ ParamSpec, Proc, ProcAnatomy, ProcDiff, ProcFactory, ProcFactoryBuilder,
    ProcEntry, ProcFilter, ProcGen, ProcGraph, ProcIdle, ProcParam, ProcParamAudio, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamControl, ProcParamScalar, RichAudioBus }
+import de.sciss.synth.aux.GraphFunction
+import de.sciss.synth.ugen.In
+import sys.error
 
 /**
  *    @version 0.12, 20-Jul-10
@@ -59,24 +61,24 @@ extends ProcFactoryBuilder {
    protected var pAudioIns                  = Vector.empty[ ProcParamAudioInput ]
    protected var pAudioOuts                 = Vector.empty[ ProcParamAudioOutput ]
 
-   @inline protected def requireOngoing = require( !finished, "ProcFactory build has finished" )
+   @inline protected def requireOngoing() { require( !finished, "ProcFactory build has finished" )}
 
    def pScalar( name: String, spec: ParamSpec, default: Double ) : ProcParamScalar = {
-      requireOngoing
+      requireOngoing()
       val p = new ParamScalarImpl( name, spec, default )
       addParam( p )
       p
    }
 
    def pControl( name: String, spec: ParamSpec, default: Double ) : ProcParamControl = {
-      requireOngoing
+      requireOngoing()
       val p = new ParamControlImpl( name, spec, default )
       addParam( p )
       p
    }
 
    def pAudio( name: String, spec: ParamSpec, default: Double ) : ProcParamAudio = {
-      requireOngoing
+      requireOngoing()
       val p = new ParamAudioImpl( name, spec, default )
       addParam( p )
       p
@@ -90,7 +92,7 @@ extends ProcFactoryBuilder {
 //   }
 
    def pAudioIn( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioInput = {
-      requireOngoing
+      requireOngoing()
       pAudioIn( name, default, false )
    }
 
@@ -102,7 +104,7 @@ extends ProcFactoryBuilder {
    }
 
    def pAudioOut( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioOutput = {
-      requireOngoing
+      requireOngoing()
       pAudioOut( name, default, false )
    }
 
@@ -114,44 +116,56 @@ extends ProcFactoryBuilder {
       p
    }
 
-   protected def implicitInAr : GE = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].ar
-   protected def implicitOutAr( sig: GE ) : GE = {
-      val rate = Rate.highest( sig.outputs.map( _.rate ): _* )
-      if( (rate == audio) || (rate == control) ) {
-         Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].ar( sig )
-      } else sig
+   protected def implicitInAr : In = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].ar
+   protected def implicitOutAr[ T ]( sig: T )( implicit res: GraphFunction.Result[ T ]) {
+      res match {
+         case GraphFunction.Result.In( view ) =>
+            val in = view.apply( sig )
+//            val rate = Rate.highest( sig.outputs.map( _.rate ): _* )
+//            if( (rate == audio) || (rate == control) ) {
+               Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].ar( in )
+//            }
+         case _ =>
+      }
    }
    protected def implicitInNumCh : Int = Proc.local.param( "in" ).asInstanceOf[ ProcParamAudioInput ].numChannels
    protected def implicitOutNumCh( n: Int ) { Proc.local.param( "out" ).asInstanceOf[ ProcParamAudioOutput ].numChannels_=( n )}
 
-   def graphIn( fun: GE => GE ) : ProcGraph = {
-      val fullFun = () => fun( implicitInAr )
-      graph( fullFun )
+   def graphIn( fun: In => Any ) : ProcGraph = {
+      val fullFun = () => { fun( implicitInAr ); () }
+      fullGraph( fullFun )
    }
 
-   def graphInOut( fun: GE => GE ) : ProcGraph = {
+   def graphInOut[ T : GraphFunction.Result ]( fun: In => T ) : ProcGraph = {
       val fullFun = () => {
          val in   = implicitInAr
          val out  = fun( in )
          implicitOutAr( out )
       }
-      graph( fullFun )
+      fullGraph( fullFun )
    }
 
-   def graphOut( fun: () => GE ) : ProcGraph = {
-      val fullFun = () => implicitOutAr( fun() )
-      graph( fullFun )
+   def graphOut[ T : GraphFunction.Result ]( thunk: => T ) : ProcGraph = {
+      val fullFun = () => {
+// println( "graphOut " + name )
+         implicitOutAr( thunk )
+      }
+      fullGraph( fullFun )
    }
 
-   def graph( fun: () => GE ) : ProcGraph = {
-      requireOngoing
+   def graph( thunk: => Any ) : ProcGraph = {
+      fullGraph( () => thunk )
+   }
+
+   private def fullGraph( fun: () => Unit ) : ProcGraph = {
+      requireOngoing()
       val res = new GraphImpl( fun )
       enter( res )
       res
    }
 
    def idleIn( fun: Int => Any ) : ProcIdle = {
-      val fullFun: Function0[ Unit ] = () => fun( implicitInNumCh )
+      val fullFun: () => Unit = () => fun( implicitInNumCh )
       idle( fullFun )
    }
    
@@ -176,7 +190,7 @@ extends ProcFactoryBuilder {
    }
    
    protected def idle( fun: () => Unit ) : ProcIdle = {
-      requireOngoing
+      requireOngoing()
       val res = new IdleImpl( fun )
       enter( res )
       res
@@ -188,7 +202,7 @@ extends ProcFactoryBuilder {
    }
 
    def finish : ProcFactory = {
-      requireOngoing
+      requireOngoing()
       require( entry.isDefined, "No entry point defined" )
       if( implicitAudioIn && !paramMap.contains( "in" )) {
 //         pAudioIn( "in", None, true )

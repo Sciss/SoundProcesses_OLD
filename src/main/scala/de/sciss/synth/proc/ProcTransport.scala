@@ -37,8 +37,8 @@ import actors.{ DaemonActor, TIMEOUT }
  */
 trait ProcTransport {
 //   def play( obj: ProcSched ) : Unit
-   val sampleRate: Double
-   val tickFrames: Int
+   def sampleRate: Double
+   def tickFrames: Int
    def sched( obj: ProcSched, pos: Long, latency: Int = 0 ) : Unit
    def play : Unit // = play( 0L )
    def play( offset: Long ) : Unit
@@ -47,7 +47,7 @@ trait ProcTransport {
 
 trait ProcSched {
    def play( preparePos: Long, latency: Int ): Unit
-   def discarded: Unit
+   def discarded() : Unit
 }
 
 object ProcTransport {
@@ -60,7 +60,7 @@ object ProcTransport {
 
    def apply( sampleRate: Double, tickFrames: Int ) : ProcTransport = {
       val res = new Impl( sampleRate, tickFrames )
-      res.start
+      res.start()
       res
    }
 
@@ -75,7 +75,7 @@ object ProcTransport {
          this ! Sched( obj, pos, latency )
       }
 
-      def play : Unit = play( 0L )
+      def play { play( 0L )}
       def play( offset: Long ) { trnsp ! Play( offset )}
       def stop { trnsp ! Stop }
 
@@ -93,7 +93,7 @@ object ProcTransport {
 
       private val queue = new PriorityQueue[ Executable ]()( ExecutableOrdering )
 
-      def act = loop { react {
+      def act() { loop { react {
          case Play( offset ) => {
             if( verbose ) println( "Transport.play " + offset )
             var pos        = offset // XXX should keep pos when trnsp stopped!
@@ -116,16 +116,16 @@ object ProcTransport {
                      schedExec( obj, playPos0 - latency0, latency )
                   }
                   case TIMEOUT => {
-                     val exec = queue.dequeue
+                     val exec = queue.dequeue()
                      pos = exec.pos
                      if( verbose ) println( "Transport.exec " + pos )
-                     exec.execute
+                     exec.execute()
                   }
                   case Stop => {
                      if( verbose ) println( "Transport.stop" )
                      playing = false
-                     queue.foreach( _.discarded )         // XXX no !
-                     queue.clear                          // XXX no !
+                     queue.foreach( _.discarded() )         // XXX no !
+                     queue.clear()                         // XXX no !
 //                     foreachPlayer( _.stop )
                   }
                   case Play( _ ) => println( "WARNING: Transport already playing" )
@@ -141,7 +141,7 @@ object ProcTransport {
          }
          case Stop => println( "WARNING: Transport already stopped" )
          case msg => println( "WARNING: Transport received unknown message " + msg )
-      }}
+      }}}
 
       private def schedExec( obj: ProcSched, execPos: Long, latency: Int ) {
          queue += Execute( obj, execPos, latency )
@@ -168,8 +168,8 @@ object ProcTransport {
 
       private abstract sealed class Executable {
          def pos: Long
-         def execute: Unit
-         def discarded: Unit
+         def execute(): Unit
+         def discarded(): Unit
       }
 
       private object ExecutableOrdering extends Ordering[ Executable ] {
@@ -177,15 +177,15 @@ object ProcTransport {
       }
 
       private case class Tick( pos: Long ) extends Executable {
-         def execute = tick( pos )
-         def discarded {}
+         def execute() { tick( pos )}
+         def discarded() {}
       }
 
       // pos is exec-pos (play-pos minus latency)
       private case class Execute( obj: ProcSched, pos: Long, latency: Int )
       extends Executable {
-         def execute    = obj.play( pos, latency )
-         def discarded  = obj.discarded
+         def execute()   { obj.play( pos, latency )}
+         def discarded() { obj.discarded() }
       }
    }
 }

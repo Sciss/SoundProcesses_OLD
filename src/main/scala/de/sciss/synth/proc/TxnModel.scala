@@ -28,7 +28,6 @@
 
 package de.sciss.synth.proc
 
-import concurrent.stm.{ Ref => CRef, InTxn }
 import collection.immutable.{ Queue => IQueue }
 
 /**

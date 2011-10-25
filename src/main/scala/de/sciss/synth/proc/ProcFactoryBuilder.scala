@@ -28,8 +28,9 @@
 
 package de.sciss.synth.proc
 
-import de.sciss.synth.{ GE }
 import impl.FactoryBuilderImpl
+import de.sciss.synth.aux.GraphFunction
+import de.sciss.synth.ugen.In
 
 /**
  *    @version 0.15, 11-Aug-10
@@ -43,10 +44,10 @@ trait ProcFactoryBuilder {
    def pAudioIn( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioInput
    def pAudioOut( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioOutput
 
-   def graphOut( fun: () => GE ) : ProcGraph
-   def graph( fun: () => GE ) : ProcGraph
-   def graphIn( fun: GE => GE ) : ProcGraph
-   def graphInOut( fun: GE => GE ) : ProcGraph
+   def graphOut[ T : GraphFunction.Result ]( thunk: => T ) : ProcGraph
+   def graph( thunk: => Any ) : ProcGraph
+   def graphIn( fun: In => Any ) : ProcGraph
+   def graphInOut[ T : GraphFunction.Result ]( fun: In => T ) : ProcGraph
 
    def idleOut( fun: () => Int ) : ProcIdle
    def idle : ProcIdle

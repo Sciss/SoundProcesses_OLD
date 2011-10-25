@@ -31,8 +31,8 @@ package de.sciss.synth.proc.impl
 import de.sciss.synth.proc.{ DurationalTransition, Glide, Instant, Proc, ProcAudioInput, ProcAudioInsertion,
    ProcAudioOutput, ProcControl, ProcDemiurg, ProcEdge, ProcParamAudioInput, ProcParamAudioOutput, ProcTxn,
    Ref, RichAudioBus, RichBus, RichSynthDef, XFade }
-import de.sciss.synth.{ audio, doNothing, freeSelf, welchShape, sinShape, varShape, addToHead, addToTail, DoneAction,
-   EnvSeg, Env, GE, ControlSetMap => CSet, SynthGraph, ConstEnvShape }
+import de.sciss.synth.{ audio, doNothing, freeSelf, welchShape, sinShape, addToHead, addToTail, DoneAction,
+   Env, GE, SynthGraph }
 import de.sciss.synth.ugen.{ EnvGen, In, Line, Out, ReplaceOut }
 import de.sciss.synth
 
@@ -152,7 +152,7 @@ extends AbstractAudioInputImpl {
 
    def stop( implicit tx: ProcTxn ) {
       if( verbose ) println( this.toString + " : stop" )
-      val wasPlaying = playingRef.swap( false )
+      /* val wasPlaying = */ playingRef.swap( false )
 //      bus foreach { rb =>
 //         tx.transit match {
 //            case xfade: XFade => bus = None // XXX ??? korrekt
@@ -196,7 +196,7 @@ extends AudioBusImpl with ProcAudioOutput {
    // returns the old bus signal and the new one
    private def xfadeGraphMain( numChannels: Int ) : (GE, GE) = {
       import synth._
-      val line    = EnvGen.kr( Env( "$start".ir, List( EnvSeg( 1, "$stop".ir, varShape( "$shape".ir )))),
+      val line    = EnvGen.kr( Env( "$start".ir, List( Env.Seg( 1, "$stop".ir, varShape( "$shape".ir )))),
          timeScale = "$dur".ir, doneAction = "$done".ir )
       val wIn     = (1 - line).sqrt
       val wBus    = line
@@ -317,7 +317,7 @@ extends AudioBusImpl with ProcAudioOutput {
     *    Furthermore, we assume that the background layer will be created appropriately
     *    by the proc, so we just play to the regular groups
     */
-   private def fade( d: DurationalTransition, rb: RichAudioBus, line: (Int, Int), shape: ConstEnvShape,
+   private def fade( d: DurationalTransition, rb: RichAudioBus, line: (Int, Int), shape: Env.ConstShape,
                      doneAction: DoneAction )( implicit tx: ProcTxn ) {
       val server        = rb.server
       val numChannels   = rb.numChannels

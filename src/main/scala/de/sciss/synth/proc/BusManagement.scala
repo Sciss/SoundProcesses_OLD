@@ -28,15 +28,13 @@
 
 package de.sciss.synth.proc
 
-import collection.immutable.{ SortedMap => ISortedMap, SortedSet => ISortedSet }
+import collection.immutable.{SortedMap => ISortedMap}
 import de.sciss.synth.{ AudioBus, AudioRated, Bus, ControlBus, ControlRated, Rate, Server }
 
 /**
  *    @version 0.12, 18-Jul-10
  */
 sealed trait RichBus {
-   import RichBus._
-
    def server : Server
    def numChannels : Int
 
@@ -235,13 +233,13 @@ object RichBus {
 
    def soundIn( server: Server, numChannels: Int, offset: Int = 0 ) : RichAudioBus = {
       val o = server.options
-      require( offset +  numChannels <= o.inputBusChannels )
+      require( offset +  numChannels <= o.inputBusChannels, "soundIn - offset is beyond allocated hardware channels" )
       FixedImpl( new AudioBus( server, o.outputBusChannels, numChannels + offset ))
    }
 
    def soundOut( server: Server, numChannels: Int, offset: Int = 0 ) : RichAudioBus = {
       val o = server.options
-      require( offset + numChannels <= o.outputBusChannels )
+      require( offset + numChannels <= o.outputBusChannels, "soundOut - offset is beyond allocated hardware channels" )
       FixedImpl( new AudioBus( server, offset, numChannels ))
    }
 
@@ -365,9 +363,7 @@ object RichBus {
    }
 
    private abstract class BasicAudioImpl extends AbstractAudioImpl {
-      import RichAudioBus._
-      
-      protected val bus       = Ref.make[ AudioBusHolder ]
+      protected val bus = Ref.make[ AudioBusHolder ]
 
       def busOption( implicit tx: ProcTxn ) = {
          val bh = bus()
@@ -378,7 +374,7 @@ object RichBus {
    private class AudioImpl( val server: Server, val numChannels: Int ) extends BasicAudioImpl {
       import RichAudioBus.{ User => AU }
 
-      override def toString = "sh-abus@" + hashCode
+      override def toString = "sh-abus(numChannels=" + numChannels + ")@" + hashCode
 
       def addReader( u: AU )( implicit tx: ProcTxn ) {
          val rs   = readers()
@@ -505,7 +501,7 @@ object RichBus {
    private class TempAudioImpl( val server: Server, val numChannels: Int ) extends BasicAudioImpl {
       import RichAudioBus.{ User => AU }
 
-      override def toString = "tmp-abus@" + hashCode
+      override def toString = "tmp-abus(numChannels=" + numChannels + ")@" + hashCode
 
       def addReader( u: AU )( implicit tx: ProcTxn ) { add( readers, writers, u )}
       def addWriter( u: AU )( implicit tx: ProcTxn ) { add( writers, readers, u )}
@@ -551,7 +547,7 @@ object RichBus {
       private val readers  = Ref( Set.empty[ CU ])
       private val writers  = Ref( Set.empty[ CU ])
 
-      override def toString = "cbus@" + hashCode
+      override def toString = "cbus(numChannels=" + numChannels + ")@" + hashCode
 
       def busOption( implicit tx: ProcTxn ) = {
          val bh = bus()

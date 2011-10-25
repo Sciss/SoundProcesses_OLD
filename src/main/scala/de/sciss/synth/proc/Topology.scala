@@ -28,7 +28,7 @@
 
 package de.sciss.synth.proc
 
-import collection.immutable.{ IndexedSeq => IIdxSeq, Map => IMap, Seq => ISeq, Set => ISet }
+import collection.immutable.{ IndexedSeq => IIdxSeq, Map => IMap, Set => ISet }
 import collection.mutable.{ HashSet => MHashSet, Set => MSet, Stack => MStack }
 
 /**
@@ -45,8 +45,6 @@ object Topology {
 case class Topology[ V, E <: Topology.Edge[ V ]]( vertices: IIdxSeq[ V ], edges: ISet[ E ])
                                                 ( unpositioned: Int, edgeMap: IMap[ V, ISet[ E ]])
 extends Ordering[ V ] {
-   import Topology._
-
    type T = Topology[ V, E ]
 
    override def toString = "Topology(" + vertices + ", " + edges + ")(" + unpositioned + ", " + edgeMap + ")"
@@ -136,9 +134,9 @@ extends Ordering[ V ] {
 
    // note: assumes audio rate
    private def discovery( visited: MSet[ V ], newEdgeMap: IMap[ V, ISet[ E ]], v: V, upBound: Int ) : Boolean = {
-      var targets = MStack( v )
+      val targets = MStack( v )
       while( targets.nonEmpty ) {
-         val v = targets.pop
+         val v = targets.pop()
          visited += v
 //         val moreTargets   = v.audioOutputs.flatMap( _.edges ).map( _.target.proc )
          val moreTargets   = newEdgeMap.getOrElse( v, Set.empty ).map( _.targetVertex )

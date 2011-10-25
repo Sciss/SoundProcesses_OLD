@@ -28,12 +28,14 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.ugen.{ In, Out }
-import de.sciss.synth.{ audio, control, GE }
 import de.sciss.synth.proc.{ ParamSpec, Proc, ProcEntryBuilder, ProcParamAudio, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamControl, ProcParamScalar,
    ProcParamUnspecifiedException, RichAudioBus, RichBus }
 import de.sciss.synth
+import synth.ugen.In
+import synth.{WritesBus, UGenIn, UGenSource, audio, GE}
+import sys.error
+import collection.immutable.{IndexedSeq => IIdxSeq}
 
 /**
  *    @version 0.13, 02-Aug-10
@@ -136,7 +138,7 @@ extends ProcParamAudioInput {
       b
    }
 
-   def ar : GE = {
+   def ar : In = {
       import synth._
       val b = resolveBusAndIncludeParam
       In.ar( name.kr, b.numChannels )
@@ -150,9 +152,46 @@ extends ProcParamAudioInput {
    private def pError( name: String ) = throw new ProcParamUnspecifiedException( name )
 }
 
+object ParamAudioOutputImpl {
+   final case class Lazy( p: ParamAudioOutputImpl, sig: GE )
+   extends UGenSource.ZeroOut( p.name ) with WritesBus {
+//      def displayName = p.name
+
+//      protected def makeUGens: Unit = unwrap(IIdxSeq(bus.expand).++(in.expand.outputs))
+//      protected def makeUGen(_args: IIdxSeq[UGenIn]): Unit = new UGen.ZeroOut(name, rate, _args)
+
+      def rate = audio
+      def makeUGens {
+         val x = sig.expand.outputs
+//println( Proc.local.toString + " - " + p.name + " unwrapping " + sig + " expanded as " + x )
+         unwrap( x )
+      }
+      def makeUGen( args: IIdxSeq[ UGenIn ]) {
+         import synth._
+         import ugen._
+
+         val numCh   = args.size
+         val b       = p.resolveBusAndIncludeParam( numCh )
+//println( Proc.local.toString + " - " + p.name + " makeUGen( " + args + ") : b = " + b )
+         require( b.numChannels == numCh, "Coercing output signal from " + numCh + " into " + b.numChannels + " channels" )
+         val args1      = args.map { in =>
+            in.rate match {
+               case `audio`   => in
+               case `control` => K2A.ar( in )
+               case `scalar`  => K2A.ar( in )
+               case _         => sys.error( "Illegal graph output rate: " + in.rate )
+            }
+         }
+         val sig = GE.fromSeq( args1 ) // GE.fromUGenIns( args1 )
+         Out.ar( p.name.kr, sig )
+      }
+   }
+}
 class ParamAudioOutputImpl( val name: String, val default: Option[ RichAudioBus ], val physical: Boolean )
 extends ProcParamAudioOutput {
-   private def resolveBusAndIncludeParam( numChannels: Int ) : RichAudioBus = {
+   import ParamAudioOutputImpl._
+
+   def resolveBusAndIncludeParam( numChannels: Int ) : RichAudioBus = {
       val p             = Proc.local
       val pb            = ProcEntryBuilder.local
       implicit val tx   = pb.tx
@@ -175,19 +214,23 @@ extends ProcParamAudioOutput {
       b
    }
 
-   def ar( sig: GE ) : GE = {
-      import synth._
-      val numCh   = sig.numOutputs
-      val b       = resolveBusAndIncludeParam( numCh )
-      val sig2: GE = if( b.numChannels == numCh ) {
-         sig
-      } else {
-         println( "WARNING: Coercing output signal from " + numCh + " into " + b.numChannels + " channels" )
-         val chans   = sig.outputs
-         List.tabulate( b.numChannels )( ch => chans( ch % numCh ))
-      }
-      Out.ar( name.kr, sig2 )
-   }
+   def ar( sig: GE ) : UGenSource.ZeroOut = Lazy( this, sig )
+
+//   def ar( sig: GE ) : Out = {
+//      import synth._
+//      val numCh   = sig.numOutputs
+//      val b       = resolveBusAndIncludeParam( numCh )
+//      val sig2: GE = if( b.numChannels == numCh ) {
+//         sig
+//      } else {
+//         /*println*/ error( "WARNING: Coercing output signal from " + numCh + " into " + b.numChannels + " channels" )
+//
+////         val chans   = sig.outputs
+////         List.tabulate( b.numChannels )( ch => chans( ch % numCh ))
+//      }
+//      Out.ar( name.kr, sig2 )
+////      Out.ar( name.kr, sig )
+//   }
 
    def numChannels_=( n: Int ) {
       val b = resolveBusAndIncludeParam( n )

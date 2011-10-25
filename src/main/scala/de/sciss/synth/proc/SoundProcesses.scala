@@ -28,25 +28,38 @@
 
 package de.sciss.synth.proc
 
+import ProcTxn.{ atomic => t }
+import DSL._
+import de.sciss.synth._
+import de.sciss.synth.ugen._
+
 object SoundProcesses {
    val name          = "SoundProcesses"
-   val version       = 0.23
+   val version       = 0.30
+   val isSnapshot    = false
    val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
-   def versionString = (version + 0.001).toString.substring( 0, 4 )
+
+   def versionString = {
+      val s = (version + 0.001).toString.substring( 0, 4 )
+      if( isSnapshot ) s + "-SNAPSHOT" else s
+   }
 
    def main( args: Array[ String ]) {
       (if( args.size > 0 ) args( 0 ) else "") match {
-         case "--test2" => test2
-         case "--test3" => test3
-         case "--test4" => test4
-         case "--test5" => test5
+         case "--test1" => test1()
+         case "--test2" => test2()
+         case "--test3" => test3()
+         case "--test4" => test4()
+         case "--test5" => test5()
+         case "--test6" => test6()
+         case "--test7" => test7()
          case _ =>
-            printInfo
-            System.exit( 1 )
+            printInfo()
+            sys.exit( 1 )
       }
    }
 
-   def printInfo {
+   def printInfo() {
       println( "\n" + name + " v" + versionString + "\n" + copyright + ". All rights reserved.\n" +
          "This is a library which cannot be executed directly.\n" )
    }
@@ -71,50 +84,71 @@ object SoundProcesses {
 //      println( "done" )
 //   }
 
-   def test5 {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
-
+   private def boot( code: => Unit ) {
       Server.test { s =>
+         s.dumpOSC()
          ProcDemiurg.addServer( s )
-         s.dumpOSC(1)
-         t { implicit tx =>
-            val p = (gen( "test" ) {
-               graph {
-                  val in = In.ar( NumOutputBuses.ir, 2 )
-                  val fft = FFT( bufEmpty( 1024 ).id, Mix( in ))
-                  val spec = SpecPcile.kr( fft )
-                  val smooth = Lag.kr( spec, 10 )
-                  2f.react( smooth ) { data =>
-                     val Seq( freq ) = data
-                     println( "GOT: " + freq )
-                  }
-                  0 // in
-               }
-            }).make
-            p.play
-         }
-         println( "Ok" )
+         code
       }
    }
 
-   def test2 {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
+   private def test1() {
+      t { implicit tx =>
+         /* val disk = */ gen( "Disk" ) {
+            val pspeed  = pControl( "speed", ParamSpec( 0.1f, 10, ExpWarp ), 1 )
+            val ppos    = pScalar( "pos",  ParamSpec( 0, 1 ), 0 )
+            graph {
+               val path       = "/Users/rutz/Desktop/Cupola/audio_work/material/lalaConlalaQuadNoAtkSt.aif"
+               val afSpec     = audioFileSpec( path )
+               val startPos   = ppos.v
+               val startFrame = (startPos * afSpec.numFrames).toLong
+               val buf        = bufCue( path, startFrame )
+               val bufID      = buf.id
+               val speed      = pspeed.kr * BufRateScale.ir( bufID )
+               val d          = VDiskIn.ar( afSpec.numChannels, bufID, speed, loop = 1 )
+//               val frame   = d.reply
+//               (frame.carry( pspeed.v * b.sampleRate ) / b.numFrames) ~> ppos
+//               val liveFrame  = Integrator.ar( K2A.ar( speed ))
+//               val livePos    = ((liveFrame / BufFrames.ir( bufID )) + startPos) % 1.0f
+//               livePos ~> ppos
+               d
+            }
+         }
 
-      Server.test { s =>
-         s.dumpOSC(1)
-         ProcDemiurg.addServer( s )
+         /* val achil = */ filter( "Achil") {
+            val pspeed  = pAudio( "speed", ParamSpec( 0.125, 2.3511, ExpWarp ), 0.5 )
+            val pmix    = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
+
+            graph { in: In =>
+               val speed	   = Lag.ar( pspeed.ar, 0.1 )
+               val numFrames  = sampleRate.toInt
+               val numChannels= in.numChannels // numOutputs
+               val buf        = bufEmpty( numFrames, numChannels )
+               val bufID      = buf.id
+               val writeRate  = BufRateScale.kr( bufID )
+               val readRate   = writeRate * speed
+               val readPhasor = Phasor.ar( 0, readRate, 0, numFrames )
+               val read			= BufRd.ar( numChannels, bufID, readPhasor, 0, 4 )
+               val writePhasor= Phasor.ar( 0, writeRate, 0, numFrames )
+               val old			= BufRd.ar( numChannels, bufID, writePhasor, 0, 1 )
+               val wet0 		= SinOsc.ar( 0, ((readPhasor - writePhasor).abs / numFrames * math.Pi) )
+               val dry			= 1 - wet0.squared
+               val wet			= 1 - (1 - wet0).squared
+               BufWr.ar( (old * dry) + (in * wet), bufID, writePhasor )
+               LinXFade2.ar( in, read, pmix.ar * 2 - 1 )
+            }
+         }
+      }
+   }
+
+   private def test2() {
+      boot {
          val (p1, p2) = t { implicit tx =>
             val p1 = (gen( "Mod" ) {
                graph { SinOsc.ar( 2 )}
             }).make
             val p3 = (diff( "Silent" ) {
-               graph { _ => Silent.ar }
+               graph { _: In => Silent.ar }
             }).make
             val p2 = (gen( "Osc" ) {
                val pfreq = pAudio( "freq", ParamSpec( 100, 10000, ExpWarp ), 441 )
@@ -141,18 +175,12 @@ object SoundProcesses {
       }
    }
 
-   def test3 {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
-
-      Server.test { s =>
-         ProcDemiurg.addServer( s )
+   private def test3() {
+      boot {
          t { implicit tx =>
             val genDummyStereo = gen( "@" ) { graph { Silent.ar( 2 )}}
             val fieldCollectors: Map[ Int, Proc ] = (1 to 4).map( field => {
-               val genColl = filter( field.toString ) { graph { in => in }}
+               val genColl = filter( field.toString ) { graph { in: GE => in }}
                val pColl   = genColl.make
                val pDummy  = genDummyStereo.make
                pDummy ~> pColl
@@ -166,7 +194,7 @@ object SoundProcesses {
 
             // ---- master ----
 
-            val pMaster = diff( "master" )( graph { in =>
+            val pMaster = diff( "master" )( graph { in: GE =>
                val ctrl = HPF.ar( in, 50 )
                val cmp  = Compander.ar( in, ctrl, (-12).dbamp, 1, 1.0/3.0 ) * 2
                Out.ar( 0, cmp )
@@ -175,29 +203,22 @@ object SoundProcesses {
             collMaster ~> pMaster
 //            val topo2 = ProcDemiurg.worlds( s ).topology
             pMaster.play
-            s.dumpOSC(1)
-            val g1 = collMaster.groupOption
-            val g2 = pMaster.groupOption
+//            s.dumpOSC()
+//            val g1 = collMaster.groupOption
+//            val g2 = pMaster.groupOption
             println( "JA" )
          }
       }
    }
 
-   def test4 {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
-      import ProcTxn.{ atomic => t }
-
-      Server.test { s =>
-         s.dumpOSC(1)
-         ProcDemiurg.addServer( s )
+   private def test4() {
+      boot {
          t { implicit tx =>
             val p1 = gen( "1" )({
                graph { PinkNoise.ar( List( 0.2, 0.2 ))}
             }).make
             val p2 = diff( "2" )({
-               graph { in => Out.ar( 0, in )}
+               graph { in: GE => Out.ar( 0, in )}
             }).make
             val p3 = gen( "3" )({
                graph { SinOsc.ar( List( 400, 410 )) * 0.2 }
@@ -211,63 +232,97 @@ object SoundProcesses {
                p3.play
             }
 
-            val g1 = p1.groupOption
-            val g2 = p2.groupOption
-            val g3 = p3.groupOption
+//            val g1 = p1.groupOption
+//            val g2 = p2.groupOption
+//            val g3 = p3.groupOption
             println( "JA" )
          }
       }
    }
 
-   def test {
-      import DSL._
-      import de.sciss.synth._
-      import de.sciss.synth.ugen._
+   private def test5() {
+      boot {
+         t { implicit tx =>
+            val p = (gen( "test" ) {
+               graph {
+                  val in = In.ar( NumOutputBuses.ir, 2 )
+                  val fft = FFT( bufEmpty( 1024 ).id, Mix( in ))
+                  val spec = SpecPcile.kr( fft )
+                  val smooth = Lag.kr( spec, 10 )
+                  2f.react( smooth ) { data =>
+                     val Seq( freq ) = data
+                     println( "GOT: " + freq )
+                  }
+                  0 // in
+               }
+            }).make
+            p.play
+         }
+         println( "Ok" )
+      }
+   }
 
-      ProcTxn.atomic { implicit tx =>
-         val disk = gen( "Disk" ) {
-            val pspeed  = pControl( "speed", ParamSpec( 0.1f, 10, ExpWarp ), 1 )
-            val ppos    = pScalar( "pos",  ParamSpec( 0, 1 ), 0 )
-            graph {
-               val path       = "/Users/rutz/Desktop/Cupola/audio_work/material/lalaConlalaQuadNoAtkSt.aif"
-               val afSpec     = audioFileSpec( path )
-               val startPos   = ppos.v
-               val startFrame = (startPos * afSpec.numFrames).toLong 
-               val buf        = bufCue( path, startFrame )
-               val bufID      = buf.id
-               val speed      = pspeed.kr * BufRateScale.ir( bufID )
-               val d          = VDiskIn.ar( afSpec.numChannels, bufID, speed, loop = 1 )
-//               val frame   = d.reply
-//               (frame.carry( pspeed.v * b.sampleRate ) / b.numFrames) ~> ppos
-               val liveFrame  = Integrator.ar( K2A.ar( speed ))
-               val livePos    = ((liveFrame / BufFrames.ir( bufID )) + startPos) % 1.0f
-//               livePos ~> ppos
-               d
+   private def test6() {
+      boot {
+         t { implicit tx =>
+            val f1 = gen( "gen" ) {
+               graph {
+//println( "AQUI : Pink" )
+                  PinkNoise.ar( Seq( 0.2, 0.2 ))
+               }
             }
+//            val f2 = diff( "diff" ) {
+//               graph { in: In =>
+//println( "AQUI : Out" )
+//                  Out.ar( 0, in )
+//               }
+//            }
+            val p1 = f1.make
+//            val p2 = f2.make
+//            p1 ~> p2
+            p1.play
+//            p2.play
+         }
+         println( "Ok" )
+      }
+   }
+
+   private def test7() {
+      Server.test { s =>
+         ProcDemiurg.addServer( s )
+         val (g, f, d) = t { implicit tx =>
+            val gf = gen( "Sprink" ) {
+               graph {
+                  Dust.ar( Seq( 200, 400 ))
+               }
+            }
+
+            val ff = filter( "Filt" ) {
+               graph { in: In =>
+                  val hpf = HPF.ar( in, 8000 )
+                  hpf
+               }
+            }
+
+            val df = diff( "Out" ) {
+                val pout  = pAudioOut( "out", Some( RichBus.soundOut( s, 2 )))
+                graph { in: In =>
+                   pout.ar( in )
+                }
+            }
+
+            val g = gf.make
+            val d = df.make
+            val f = ff.make
+            g ~> d
+//            g.play
+            d.play
+            (g, f, d)
          }
 
-         val achil = filter( "Achil") {
-            val pspeed  = pAudio( "speed", ParamSpec( 0.125, 2.3511, ExpWarp ), 0.5 )
-            val pmix    = pAudio( "mix", ParamSpec( 0, 1 ), 1 )
-
-            graph { in =>
-               val speed	   = Lag.ar( pspeed.ar, 0.1 )
-               val numFrames  = sampleRate.toInt
-               val numChannels= in.numOutputs
-               val buf        = bufEmpty( numFrames, numChannels )
-               val bufID      = buf.id
-               val writeRate  = BufRateScale.kr( bufID )
-               val readRate   = writeRate * speed
-               val readPhasor = Phasor.ar( 0, readRate, 0, numFrames )
-               val read			= BufRd.ar( numChannels, bufID, readPhasor, 0, 4 )
-               val writePhasor= Phasor.ar( 0, writeRate, 0, numFrames )
-               val old			= BufRd.ar( numChannels, bufID, writePhasor, 0, 1 )
-               val wet0 		= SinOsc.ar( 0, ((readPhasor - writePhasor).abs / numFrames * math.Pi) )
-               val dry			= 1 - wet0.squared
-               val wet			= 1 - (1 - wet0).squared
-               BufWr.ar( (old * dry) + (in * wet), bufID, writePhasor )
-               LinXFade2.ar( in, read, pmix.ar * 2 - 1 )
-            }
+         t { implicit tx =>
+            g ~| f |> d
+            f.play
          }
       }
    }

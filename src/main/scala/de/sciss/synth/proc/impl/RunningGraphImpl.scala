@@ -30,6 +30,7 @@ package de.sciss.synth.proc.impl
 
 import de.sciss.synth.proc.{ ControlValue, Glide, Instant, ProcAudioBus, ProcControl, ProcRunning, ProcTxn, Ref,
    RichAudioBus, RichGroup, RichNode, RichSynth, TxnPlayer, XFade }
+import sys.error
 
 /**
  *    @version 0.11, 29-Aug-10
@@ -41,8 +42,8 @@ extends ProcRunning {
 
    def anchorNode( implicit tx: ProcTxn ) : RichNode = rs
 
-   def stop( implicit tx: ProcTxn ) = {
-      tx transit match {
+   def stop( implicit tx: ProcTxn ) {
+      tx.transit match {
          case Instant      => {
             rs.free()
 // WRONG

@@ -29,11 +29,9 @@
 package de.sciss.synth.proc
 
 import collection.immutable.{ IndexedSeq => IIdxSeq, Set => ISet }
-import de.sciss.synth.{ addAfter, addBefore, Group, Server, SynthDef, SynthGraph }
+import sys.error
+import de.sciss.synth.{UGenGraph, addAfter, addBefore, Group, Server, SynthDef, SynthGraph}
 
-/**
- *    @version 0.12, 06-Jul-10
- */
 object ProcWorld {
 //   case class ProcsRemoved( procs: Proc* )
 //   case class ProcsAdded( procs: Proc* )
@@ -48,7 +46,8 @@ class ProcWorld extends TxnModel[ ProcWorld.Update ] {
    import ProcWorld._
 
    private type Topo = Topology[ Proc, ProcEdge ] 
-   val synthGraphs = Ref( Map.empty[ SynthGraph, RichSynthDef ])
+//   val synthGraphs = Ref( Map.empty[ SynthGraph, RichSynthDef ])
+   val ugenGraphs = Ref( Map.empty[ UGenGraph, RichSynthDef ])
    private val topologyRef = Ref[ Topo ]( Topology.empty )
 
    protected def fullUpdate( implicit tx: ProcTxn ) = Update( topologyRef().vertices.toSet, Set.empty )
@@ -106,11 +105,11 @@ object ProcDemiurg extends TxnModel[ ProcDemiurgUpdate ] { // ( val server: Serv
    private var uniqueDefID    = 0
    private def nextDefID      = { val res = uniqueDefID; uniqueDefID += 1; res }
 
-   def addServer( server: Server ) : Unit = syn.synchronized {
+   def addServer( server: Server ) { syn.synchronized {
       if( servers.contains( server )) return
       servers += server
       worlds += server -> new ProcWorld
-   }
+   }}
 
    // commented out for debugging inspection
    var worlds = Map.empty[ Server, ProcWorld ] // new ProcWorld
@@ -141,18 +140,18 @@ object ProcDemiurg extends TxnModel[ ProcDemiurgUpdate ] { // ( val server: Serv
       })
    }
 
-   def addVertex( e: Proc )( implicit tx: ProcTxn ) : Unit = syn.synchronized {
+   def addVertex( e: Proc )( implicit tx: ProcTxn ) { syn.synchronized {
       val world = worlds( e.server )
 //      world.topology.transform( _.addVertex( e ))
       world.addProc( e )
-   }
+   }}
 
-   def removeVertex( e: Proc )( implicit tx: ProcTxn ) : Unit = syn.synchronized {
+   def removeVertex( e: Proc )( implicit tx: ProcTxn ) { syn.synchronized {
       val world = worlds( e.server )
       world.removeProc( e )
-   }
+   }}
 
-   def addEdge( e: ProcEdge )( implicit tx: ProcTxn ) : Unit = syn.synchronized {
+   def addEdge( e: ProcEdge )( implicit tx: ProcTxn ) { syn.synchronized {
 //      val world = worlds( e._1.proc.server )
       val world = worlds( e.sourceVertex.server )
       val res = world.addEdge( e )
@@ -174,23 +173,23 @@ object ProcDemiurg extends TxnModel[ ProcDemiurgUpdate ] { // ( val server: Serv
          val iter                = tgtGroups.iterator
          while( iter.hasNext ) {
             pred = succ
-            val (target, tgtGroup) = iter.next
+            val (target, tgtGroup) = iter.next()
             tgtGroup match {
-               case Some( g ) => {
+               case Some( g2 ) => {
 //                  tx.addFirst( g.server, g.moveAfterMsg( pred ))
                   if( isAfter ) {
-                     g.moveAfter( true, pred )
+                     g2.moveAfter( true, pred )
                   } else {
-                     g.moveBefore( true, pred )
+                     g2.moveBefore( true, pred )
                   }
-                  succ = g
+                  succ = g2
                }
                case None => {
-                  val g = RichGroup( Group( target.server ))
+                  val g2 = RichGroup( Group( target.server ))
 //                  tx.addFirst( g.server, g.newMsg( pred, addAfter ))
-                  g.play( pred, if( isAfter ) addAfter else addBefore )
-                  target.group = g
-                  succ = g
+                  g2.play( pred, if( isAfter ) addAfter else addBefore )
+                  target.group = g2
+                  succ = g2
                }
             }
          }
@@ -206,21 +205,32 @@ object ProcDemiurg extends TxnModel[ ProcDemiurgUpdate ] { // ( val server: Serv
          }
          case Some( g ) => startMoving( g )
       }
-   }
+   }}
 
-   def removeEdge( e: ProcEdge )( implicit tx: ProcTxn ) : Unit = syn.synchronized {
+   def removeEdge( e: ProcEdge )( implicit tx: ProcTxn ) { syn.synchronized {
       val world = worlds( e.sourceVertex.server )
       world.removeEdge( e )
-   }
+   }}
 
    def getSynthDef( server: Server, graph: SynthGraph )( implicit tx: ProcTxn ) : RichSynthDef = syn.synchronized {
       val w    = worlds( server )
-      w.synthGraphs().get( graph ).getOrElse({
+//      w.synthGraphs().get( graph ).getOrElse {
+//         val name = "proc" + nextDefID
+//         val rd   = RichSynthDef( server, SynthDef( name, graph.expand ))
+//         w.synthGraphs.transform( _ + (graph -> rd) )
+//         rd
+//      }
+
+      // XXX note: unfortunately we have sideeffects in the expansion, such as
+      // includeParam for ProcAudioOutput ... And anyways, we might allow for
+      // indeterminate GE.Lazies, thus we need to check for UGenGraph equality,
+      // not SynthGraph equality
+      val u = graph.expand
+      w.ugenGraphs().get( u ).getOrElse {
          val name = "proc" + nextDefID
-         val rd   = RichSynthDef( server, SynthDef( name, graph ))
-         w.synthGraphs.transform( _ + (graph -> rd) )
-//         tx.add( server, rd.synthDef.recvMsg )
+         val rd   = RichSynthDef( server, SynthDef( name, u ))
+         w.ugenGraphs.transform( _ + (u -> rd) )
          rd
-      })
+      }
    }
 }
