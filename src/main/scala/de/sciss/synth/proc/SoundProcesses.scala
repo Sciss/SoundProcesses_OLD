@@ -36,7 +36,7 @@ import de.sciss.synth.ugen._
 object SoundProcesses {
    val name          = "SoundProcesses"
    val version       = 0.30
-   val isSnapshot    = true
+   val isSnapshot    = false
    val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
 
    def versionString = {

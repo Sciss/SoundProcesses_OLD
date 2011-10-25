@@ -6,4 +6,4 @@ SoundProcesses is an extension for ScalaCollider to describe, create and manage 
 
 h3. compilation
 
-SoundProcesses 0.30-SNAPSHOT builds with xsbt (sbt 0.10) and Scala 2.9.1. Dependencies (ScalaCollider and Scala-STM) are downloaded via @xsbt update@.
+SoundProcesses 0.30 builds with xsbt (sbt 0.11) and Scala 2.9.1. Dependencies (ScalaCollider and Scala-STM) are downloaded via @xsbt update@.

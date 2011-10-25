@@ -2,8 +2,8 @@ package de.sciss.synth.proc.impl
 
 import de.sciss.synth
 import de.sciss.synth.proc.{ProcTxn, RichSynth, ProcSynthReaction, Ref, TxnPlayer }
-import de.sciss.synth.osc.OSCResponder
-import de.sciss.synth.{ scalar, control, Constant, GE, Rate, SynthGraph }
+import de.sciss.synth.{osc => sosc}
+import de.sciss.synth.GE
 import de.sciss.synth.ugen.{ Impulse, Mix, SendReply }
 import de.sciss.osc.Message
 
@@ -28,7 +28,7 @@ extends ProcSynthReaction {
 
    private[proc] def create( rs: RichSynth )( implicit tx: ProcTxn ) : TxnPlayer = {
       val nodeID     = rs.node.id
-      val resp       = OSCResponder {
+      val resp       = sosc.Responder {
          case Message( "/$react", `nodeID`, `replyID`, floats @ _* ) => {
             val doubles = floats.map( _.asInstanceOf[ Float ].toDouble )
             fun( doubles )
@@ -41,7 +41,7 @@ extends ProcSynthReaction {
       player
    }
 
-   private class Player( resp: OSCResponder ) extends TxnPlayer {
+   private class Player( resp: sosc.Responder ) extends TxnPlayer {
       val playingRef = Ref.withCheck( false ) {
          case ply => if( ply ) {
 //println( "---ADD" )

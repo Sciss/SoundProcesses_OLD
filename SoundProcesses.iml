@@ -20,10 +20,29 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="scala-library-2.9.1" level="application" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalaosc_2.9.1/scalaosc_2.9.1-0.30-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalaosc_2.9.1/scalaosc_2.9.1-0.30.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib_managed/jars/org.scalatest/scalatest_2.9.1/scalatest_2.9.1-1.6.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalacollider_2.9.1/scalacollider_2.9.1-0.30.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -38,27 +57,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalaaudiofile_2.9.1/scalaaudiofile_2.9.1-0.20.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib_managed/jars/de.sciss/scalacollider_2.9.1/scalacollider_2.9.1-0.30-SNAPSHOT.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$MODULE_DIR$/../ScalaCollider/src/main/scala" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="scala-library-2.9.1" level="application" />
   </component>
 </module>
 
