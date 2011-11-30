@@ -1,13 +1,13 @@
 name := "soundprocesses"
 
-version := "0.31-SNAPSHOT"
+version := "0.31"
 
 organization := "de.sciss"
 
 scalaVersion := "2.9.1"
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "0.31-SNAPSHOT",
+   "de.sciss" %% "scalacollider" % "0.31",
    "org.scala-tools" %% "scala-stm" % "0.3"
 )
 

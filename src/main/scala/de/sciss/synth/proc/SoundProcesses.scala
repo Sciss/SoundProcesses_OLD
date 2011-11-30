@@ -36,7 +36,7 @@ import de.sciss.synth.ugen._
 object SoundProcesses {
    val name          = "SoundProcesses"
    val version       = 0.31
-   val isSnapshot    = true
+   val isSnapshot    = false
    val copyright     = "(C)opyright 2010-2011 Hanns Holger Rutz"
 
    def versionString = {
@@ -85,7 +85,7 @@ object SoundProcesses {
 //   }
 
    private def boot( code: => Unit ) {
-      Server.test { s =>
+      Server.run { s =>
          s.dumpOSC()
          ProcDemiurg.addServer( s )
          code
@@ -288,7 +288,7 @@ object SoundProcesses {
    }
 
    private def test7() {
-      Server.test { s =>
+      Server.run { s =>
          ProcDemiurg.addServer( s )
          val (g, f, d) = t { implicit tx =>
             val gf = gen( "Sprink" ) {
