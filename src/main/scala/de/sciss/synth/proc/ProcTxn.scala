@@ -2,7 +2,7 @@
  *  ProcTxn.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -21,9 +21,6 @@
  *
  *  For further information, please contact Hanns Holger Rutz at
  *  contact@sciss.de
- *
- *
- *  Changelog:
  */
 
 package de.sciss.synth.proc
@@ -146,7 +143,7 @@ object ProcTxn {
       private class ServerData( val server: Server ) {
          var firstMsgs        = IQueue.empty[ osc.Message ]
          var secondMsgs       = IQueue.empty[ osc.Message ]
-         var firstAbortFuns   = IQueue.empty[ Function0[ Unit ]]
+         var firstAbortFuns   = IQueue.empty[ () => Unit ]
          var secondAbortMsgs  = IQueue.empty[ osc.Message ]
          var waitID           = -1
          var secondSent       = false
@@ -188,7 +185,7 @@ val server = Server.default // XXX vergación
                Futures.awaitAll( 10000L, fut ) match {
                   case List( Some( true )) =>
                   case _ =>
-                     fut.revoke
+                     fut.revoke()
                      timeoutFun()
                      error( "Timeout" )
                }

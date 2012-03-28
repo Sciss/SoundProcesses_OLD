@@ -2,7 +2,7 @@
  *  RichObject.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2011 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -21,9 +21,6 @@
  *
  *  For further information, please contact Hanns Holger Rutz at
  *  contact@sciss.de
- *
- *
- *  Changelog:
  */
 
 package de.sciss.synth.proc
@@ -329,7 +326,7 @@ class RichState( obj: AnyRef, name: String, init: Boolean ) {
 //   def currentState( implicit tx: ProcTxn ) : AnyRef
    def swap( newValue: Boolean )( implicit tx: ProcTxn ) : Boolean = value.swap( newValue )
    def get( implicit tx: ProcTxn ) : Boolean = value.apply
-   def set( newValue: Boolean )( implicit tx: ProcTxn ) : Unit = value.set( newValue )
+   def set( newValue: Boolean )( implicit tx: ProcTxn ) { value.set( newValue )}
 
    override def toString = "<" + obj.toString + " " + name + ">"
 }
