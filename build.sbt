@@ -1,6 +1,6 @@
 name := "SoundProcesses"
 
-version := "0.32-SNAPSHOT"
+version := "0.34-SNAPSHOT"
 
 organization := "de.sciss"
 
@@ -13,8 +13,8 @@ licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 scalaVersion := "2.9.1"
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "0.32-SNAPSHOT",
-   "org.scala-tools" %% "scala-stm" % "0.3"
+   "de.sciss" %% "scalacollider" % "0.34-SNAPSHOT",
+   "org.scala-tools" %% "scala-stm" % "0.5"
 )
 
 retrieveManaged := true
