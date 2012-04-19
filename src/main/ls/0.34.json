@@ -1,0 +1,26 @@
+
+{
+ "organization":"de.sciss",
+ "name":"SoundProcesses",
+ "version":"0.34",
+ "description":"A ScalaCollider extension for creating and managing sound processes",
+ "site":"https://github.com/Sciss/SoundProcesses",
+ "tags":["sound-synthesis","stm","sound","music","supercollider"],
+ "docs":"",
+ "licenses": [{
+   "name": "GPL v2+",
+   "url": "http://www.gnu.org/licenses/gpl-2.0.txt"
+  }],
+ "resolvers": ["http://scala-tools.org/repo-releases"],
+ "dependencies": [{
+   "organization":"de.sciss",
+   "name": "scalacollider",
+   "version": "0.34"
+  },{
+   "organization":"org.scala-tools",
+   "name": "scala-stm_2.9.1",
+   "version": "0.5"
+  }],
+ "scalas": ["2.9.2"],
+ "sbt": false
+}
