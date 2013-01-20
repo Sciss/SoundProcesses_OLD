@@ -2,7 +2,7 @@
  *  ProcFactoryBuilder.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -26,8 +26,8 @@
 package de.sciss.synth.proc
 
 import impl.FactoryBuilderImpl
-import de.sciss.synth.aux.GraphFunction
 import de.sciss.synth.ugen.In
+import de.sciss.synth.GraphFunction
 
 /**
  *    @version 0.15, 11-Aug-10

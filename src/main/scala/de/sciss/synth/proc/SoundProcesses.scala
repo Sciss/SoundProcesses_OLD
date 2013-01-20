@@ -2,7 +2,7 @@
  *  SoundProcesses.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -32,14 +32,8 @@ import de.sciss.synth.ugen._
 
 object SoundProcesses {
    val name          = "SoundProcesses"
-   val version       = 0.34
-   val isSnapshot    = false
-   val copyright     = "(C)opyright 2010-2012 Hanns Holger Rutz"
-
-   def versionString = {
-      val s = (version + 0.001).toString.substring( 0, 4 )
-      if( isSnapshot ) s + "-SNAPSHOT" else s
-   }
+   val version       = "0.35.0"
+   val copyright     = "(C)opyright 2010-2013 Hanns Holger Rutz"
 
    def main( args: Array[ String ]) {
       (if( args.size > 0 ) args( 0 ) else "") match {
@@ -57,7 +51,7 @@ object SoundProcesses {
    }
 
    def printInfo() {
-      println( "\n" + name + " v" + versionString + "\n" + copyright + ". All rights reserved.\n" +
+      println( "\n" + name + " v" + version + "\n" + copyright + ". All rights reserved.\n" +
          "This is a library which cannot be executed directly.\n" )
    }
 

@@ -2,7 +2,7 @@
  *  BusManagement.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -248,10 +248,10 @@ object RichBus {
 //      def busChanged( bus: AudioBus )( implicit tx: ProcTxn ) : Unit
 //   }
 
-   private var verbose = false
+   private final val verbose = false
 
    private class BusHolder[ T <: Bus ]( val bus: T ) {
-      private val useCount = Ref.withCheck( 0 ) { case 0 => bus.free }
+      private val useCount = Ref.withCheck( 0 ) { case 0 => bus.free() }
 
       def alloc( implicit tx: ProcTxn ) {
          useCount += 1

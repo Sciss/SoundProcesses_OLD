@@ -2,7 +2,7 @@
  *  FactoryBuilderImpl.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -28,13 +28,10 @@ package de.sciss.synth.proc.impl
 import de.sciss.synth.proc.{ ParamSpec, Proc, ProcAnatomy, ProcDiff, ProcFactory, ProcFactoryBuilder,
    ProcEntry, ProcFilter, ProcGen, ProcGraph, ProcIdle, ProcParam, ProcParamAudio, ProcParamAudioInput,
    ProcParamAudioOutput, ProcParamControl, ProcParamScalar, RichAudioBus }
-import de.sciss.synth.aux.GraphFunction
 import de.sciss.synth.ugen.In
 import sys.error
+import de.sciss.synth.GraphFunction
 
-/**
- *    @version 0.12, 20-Jul-10
- */
 object FactoryBuilderImpl {
    def gen( name: String ) : ProcFactoryBuilder =
       new FactoryBuilderImpl( name, ProcGen, false, true )
@@ -90,7 +87,7 @@ extends ProcFactoryBuilder {
 
    def pAudioIn( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioInput = {
       requireOngoing()
-      pAudioIn( name, default, false )
+      pAudioIn( name, default, physical = false )
    }
 
    protected def pAudioIn( name: String, default: Option[ RichAudioBus ], physical: Boolean ) : ProcParamAudioInput = {
@@ -102,7 +99,7 @@ extends ProcFactoryBuilder {
 
    def pAudioOut( name: String, default: Option[ RichAudioBus ]) : ProcParamAudioOutput = {
       requireOngoing()
-      pAudioOut( name, default, false )
+      pAudioOut( name, default, physical = false )
    }
 
 
@@ -203,11 +200,11 @@ extends ProcFactoryBuilder {
       require( entry.isDefined, "No entry point defined" )
       if( implicitAudioIn && !paramMap.contains( "in" )) {
 //         pAudioIn( "in", None, true )
-         pAudioIn( "in", None, false )
+         pAudioIn( "in", None, physical = false )
       }
 //println( "implicitAudioOut = " + implicitAudioOut + "; params.contains( \"out\" ) = " + params.contains( "out" ))
       if( implicitAudioOut && !paramMap.contains( "out" )) {
-         pAudioOut( "out", None, true )
+         pAudioOut( "out", None, physical = true )
       }
       finished = true
       new FactoryImpl( name, anatomy, entry.get, paramMap, paramSeq, pAudioIns, pAudioOuts )

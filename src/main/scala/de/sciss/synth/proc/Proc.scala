@@ -2,7 +2,7 @@
  *  Proc.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -60,7 +60,7 @@ trait Proc extends TxnModel[ Proc.Update ] with TxnPlayer with ProcSpec {
    def engage( implicit tx: ProcTxn ) : Unit
    def state( implicit tx: ProcTxn ) : State
 
-   protected def emptyUpdate = Update( this, State( false ), Map.empty, Set.empty, Set.empty )
+   protected def emptyUpdate = Update( this, State( valid = false ), Map.empty, Set.empty, Set.empty )
    protected def fullUpdate( implicit tx: ProcTxn ) : Update = {
       val ctlVals: IMap[ ProcControl, ControlValue ]                 = controls.map( c => c -> c.cv )( breakOut )
       val busConns: ISet[ ProcEdge ]                                 = outEdges 

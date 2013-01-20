@@ -2,7 +2,7 @@
  *  GraphBuilderImpl.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -124,7 +124,7 @@ extends EntryBuilderImpl with ProcGraphBuilder {
             case x => println( "Ooops. what parameter is this? " + x ) // scalac doesn't check exhaustion...
          })
 
-         val (target, addAction) = p.runningTarget( false )
+         val (target, addAction) = p.runningTarget( requireGroup = false )
          val bufs          = bufSeq.map( _.create( server ))
          val bufsZipped    = bufSeq.zip( bufs )
          setMaps ++= bufsZipped.map( tup => ControlSetMap.Single( tup._1.controlName, tup._2.buf.id ))

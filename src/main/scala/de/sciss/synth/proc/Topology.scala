@@ -2,7 +2,7 @@
  *  ProcTopology.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -28,9 +28,6 @@ package de.sciss.synth.proc
 import collection.immutable.{ IndexedSeq => IIdxSeq, Map => IMap, Set => ISet }
 import collection.mutable.{ HashSet => MHashSet, Set => MSet, Stack => MStack }
 
-/**
- *    @version 0.12, 01-Feb-11
- */
 object Topology {
    def empty[ V, E <: Edge[ V ]] = apply( Vector.empty[ V ], ISet.empty[ E ])( 0, Map.empty[ V, ISet[ E ]])
 

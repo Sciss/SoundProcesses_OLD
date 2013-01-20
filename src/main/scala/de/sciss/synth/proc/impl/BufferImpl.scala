@@ -2,7 +2,7 @@
  *  BufferImpl.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -28,6 +28,7 @@ package de.sciss.synth.proc.impl
 import de.sciss.synth.{Buffer, Server}
 import de.sciss.synth.proc.{AudioFileCache, RichBuffer, RichSynth, ProcTxn, ProcBuffer}
 import de.sciss.synth.io.{AudioFileType, SampleFormat}
+import util.control.NonFatal
 
 /**
  *    @version 0.11, 19-Jul-10
@@ -67,7 +68,7 @@ class BufferCueImpl( val uniqueID: Int, path: String, startFrame: Long ) extends
          val spec = AudioFileCache.spec( path ) // ( ProcGraphBuilder.local.tx )
          spec.numChannels
       } catch {
-         case e => e.printStackTrace()
+         case NonFatal( e ) => e.printStackTrace()
          1  // XXX what should we do? --> FAIL
       }
    }

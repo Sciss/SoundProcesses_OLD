@@ -1,20 +1,20 @@
 name := "SoundProcesses"
 
-version := "0.34"
+version := "0.35.0"
 
 organization := "de.sciss"
 
-homepage := Some( url( "https://github.com/Sciss/SoundProcesses" ))
+homepage := Some( url( "https://github.com/Sciss/SoundProcesses_OLD" ))
 
 description := "A ScalaCollider extension for creating and managing sound processes"
 
 licenses := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.0"
 
 libraryDependencies ++= Seq(
-   "de.sciss" %% "scalacollider" % "0.34",
-   "org.scala-tools" % "scala-stm_2.9.1" % "0.5" // not yet published for Scala 2.9.2
+   "de.sciss" %% "scalacollider" % "1.3.1+",
+   "org.scala-stm" %% "scala-stm" % "0.7"
 )
 
 retrieveManaged := true
@@ -39,8 +39,8 @@ pomIncludeRepository := { _ => false }
 
 pomExtra :=
 <scm>
-  <url>git@github.com:Sciss/SoundProcesses.git</url>
-  <connection>scm:git:git@github.com:Sciss/SoundProcesses.git</connection>
+  <url>git@github.com:Sciss/SoundProcesses_OLD.git</url>
+  <connection>scm:git:git@github.com:Sciss/SoundProcesses_OLD.git</connection>
 </scm>
 <developers>
    <developer>
@@ -50,15 +50,15 @@ pomExtra :=
    </developer>
 </developers>
 
-// ---- ls.implicit.ly ----
-
-seq( lsSettings :_* )
-
-(LsKeys.tags in LsKeys.lsync) := Seq( "sound-synthesis", "stm", "sound", "music", "supercollider" )
-
-(LsKeys.ghUser in LsKeys.lsync) := Some( "Sciss" )
-
-(LsKeys.ghRepo in LsKeys.lsync) := Some( "SoundProcesses" )
-
-// bug in ls -- doesn't find the licenses from global scope
-(licenses in LsKeys.lsync) := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))
+// // ---- ls.implicit.ly ----
+//
+// seq( lsSettings :_* )
+//
+// (LsKeys.tags in LsKeys.lsync) := Seq( "sound-synthesis", "stm", "sound", "music", "supercollider" )
+//
+// (LsKeys.ghUser in LsKeys.lsync) := Some( "Sciss" )
+//
+// (LsKeys.ghRepo in LsKeys.lsync) := Some( "SoundProcesses" )
+//
+// // bug in ls -- doesn't find the licenses from global scope
+// (licenses in LsKeys.lsync) := Seq( "GPL v2+" -> url( "http://www.gnu.org/licenses/gpl-2.0.txt" ))

@@ -2,7 +2,7 @@
  *  RichObject.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -31,10 +31,8 @@ import ProcTxn._
 import de.sciss.synth.{ addToHead, AddAction, Buffer, ControlABusMap, ControlKBusMap, ControlSetMap,
    Group, Node, Server, Synth, SynthDef, SynthGraph }
 import de.sciss.synth.io.{AudioFileType, SampleFormat}
+import util.control.NonFatal
 
-/**
- *    @version 0.11, 01-Sep-10
- */
 trait RichObject { def server: Server }
 
 case class RichBuffer( buf: Buffer ) extends RichObject {
@@ -44,20 +42,20 @@ case class RichBuffer( buf: Buffer ) extends RichObject {
    def server = buf.server
 
    def alloc( numFrames: Int, numChannels: Int = 1 )( implicit tx: ProcTxn ) {
-      tx.add( buf.allocMsg( numFrames, numChannels ), Some( (RequiresChange, isOnline, true) ), false )
+      tx.add( buf.allocMsg( numFrames, numChannels ), Some( (RequiresChange, isOnline, true) ), audible = false )
    }
 
    def cue( path: String, startFrame: Int = 0 )( implicit tx: ProcTxn ) {
-      tx.add( buf.cueMsg( path, startFrame ), Some( (Always, hasContent, true) ), false, Map( isOnline -> true ))
+      tx.add( buf.cueMsg( path, startFrame ), Some( (Always, hasContent, true) ), audible = false, dependancies = Map( isOnline -> true ))
    }
 
    def record( path: String, fileType: AudioFileType, sampleFormat: SampleFormat )( implicit tx: ProcTxn ) {
-      tx.add( buf.writeMsg( path, fileType, sampleFormat, 0, 0, true ),
-         Some( (Always, hasContent, true) ), false, Map( isOnline -> true )) // hasContent is a bit misleading...
+      tx.add( buf.writeMsg( path, fileType, sampleFormat, 0, 0, leaveOpen = true ),
+         Some( (Always, hasContent, true) ), audible = false, dependancies = Map( isOnline -> true )) // hasContent is a bit misleading...
    }
 
    def zero( implicit tx: ProcTxn ) {
-      tx.add( buf.zeroMsg, Some( (Always, hasContent, true) ), false, Map( isOnline -> true ))
+      tx.add( buf.zeroMsg, Some( (Always, hasContent, true) ), audible = false, dependancies = Map( isOnline -> true ))
    }
 }
 
@@ -85,14 +83,14 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
                   e.inTxn.foreach { f => try {
                      f( tx )
                   } catch {
-                     case ex => ex.printStackTrace()
+                     case NonFatal( ex ) => ex.printStackTrace()
                   }}
                }
                if( e.direct.nonEmpty ) {
                   e.direct.foreach { f => try {
                      f()
                   } catch {
-                     case ex => ex.printStackTrace()
+                     case NonFatal( ex ) => ex.printStackTrace()
                   }}
                }
             }
@@ -212,7 +210,7 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
 
    def setIfOnline( pairs: ControlSetMap* )( implicit tx: ProcTxn ) {
       // XXX eventually this should be like set with different failure resolution
-      if( isOnline.get ) tx.add( node.setMsg( pairs: _* ), None, true, noErrors = true )
+      if( isOnline.get ) tx.add( node.setMsg( pairs: _* ), None, audible = true, noErrors = true )
 //      if( isOnline.get ) tx.add( OSCBundle(
 //         OSCMessage( "/error", -1 ), node.setMsg( pairs: _* ), OSCMessage( "/error", -2 )), true )
    }
@@ -230,7 +228,7 @@ abstract class RichNode( val initOnline : Boolean ) extends RichObject {
    }
 
    def moveToHeadIfOnline( group: RichGroup )( implicit tx: ProcTxn ) {
-      if( isOnline.get ) tx.add( node.moveToHeadMsg( group.group ), None, true, Map( group.isOnline -> true ), true )
+      if( isOnline.get ) tx.add( node.moveToHeadMsg( group.group ), None, audible = true, Map( group.isOnline -> true ), noErrors = true )
    }
 
    def moveToTail( audible: Boolean, group: RichGroup )( implicit tx: ProcTxn ) {
@@ -257,7 +255,7 @@ case class RichSynth( synth: Synth, synthDef: RichSynthDef ) extends RichNode( f
 
       val deps: Map[ RichState, Boolean ] = bufs.map( _.hasContent -> true )( breakOut )      
       tx.add( synth.newMsg( synthDef.name, target.node, args, addAction ), Some( (RequiresChange, isOnline, true) ),
-              true, deps ++ Map( target.isOnline -> true, synthDef.isOnline -> true ))
+              audible = true, dependancies = deps ++ Map( target.isOnline -> true, synthDef.isOnline -> true ))
    }
 }
 
@@ -286,8 +284,8 @@ class RichGroup private( val group: Group, initOnline: Boolean ) extends RichNod
       // We thus try out a workaround by declaring a group's newMsg also audible...
 //      tx.add( group.newMsg( target.node, addAction ), Some( (RequiresChange, isOnline, true) ), false,
 //              Map( target.isOnline -> true ))
-      tx.add( group.newMsg( target.node, addAction ), Some( (RequiresChange, isOnline, true) ), true,
-              Map( target.isOnline -> true ))
+      tx.add( group.newMsg( target.node, addAction ), Some( (RequiresChange, isOnline, true) ), audible = true,
+              dependancies = Map( target.isOnline -> true ))
    }
 }
 
@@ -307,7 +305,7 @@ case class RichSynthDef( server: Server, synthDef: SynthDef ) extends RichObject
     *    will be queued.
     */
    def recv( implicit tx: ProcTxn ) {
-      tx.add( synthDef.recvMsg, Some( (IfChanges, isOnline, true) ), false )
+      tx.add( synthDef.recvMsg, Some( (IfChanges, isOnline, true) ), audible = false )
    }
 
    def play( target: RichNode, args: Seq[ ControlSetMap ] = Nil,

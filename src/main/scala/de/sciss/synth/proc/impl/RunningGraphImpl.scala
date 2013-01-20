@@ -2,7 +2,7 @@
  *  RunningGraphImpl.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -104,7 +104,7 @@ extends ProcRunning {
    }
 
    def setGroup( g: RichGroup )( implicit tx: ProcTxn ) {
-      rs.moveToHead( true, g )
+      rs.moveToHead( audible = true, g )
    }
 }
 

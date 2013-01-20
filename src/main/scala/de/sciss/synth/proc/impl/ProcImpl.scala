@@ -2,7 +2,7 @@
  *  ProcImpl.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -51,7 +51,7 @@ extends Proc {
 //   private val playGroupVar      = Ref[ Option[ RichGroup ]]( None )
    private val groupsRef         = Ref[ Option[ AllGroups ]]( None )
 //   private val pStringValues     = Ref( Map.empty[ ProcParamString, String ])
-   private val stateRef          = Ref( State( true ))
+   private val stateRef          = Ref( State( valid = true ))
    private val backRef           = Ref[ Option[ RichGroup ]]( None )
 
    lazy val audioInputs          = fact.pAudioIns.map(  p => new AudioInputImpl(  this, p ))
@@ -153,7 +153,7 @@ extends Proc {
    def group_=( newGroup: RichGroup )( implicit tx: ProcTxn ) {
       groupsRef.transform( _ map { all =>
          moveAllTo( all, newGroup )
-         all.main.free( true ) // que se puede...?
+         all.main.free( audible = true ) // que se puede...?
          all.copy( main = newGroup )
       } orElse {
          val all = AllGroups( newGroup, None, None, None, None )
@@ -164,15 +164,15 @@ extends Proc {
 
    private def moveAllTo( all: AllGroups, newGroup: RichGroup )( implicit tx: ProcTxn ) {
       anchorNodeOption map { core =>
-         core.moveToTail( true, newGroup )
-         all.pre.foreach(  _.moveBefore( true, core ))
-         all.post.foreach( _.moveAfter(  true, core ))
+         core.moveToTail( audible = true, newGroup )
+         all.pre.foreach(  _.moveBefore( audible = true, core ))
+         all.post.foreach( _.moveAfter(  audible = true, core ))
       } getOrElse {
          all.post.map { post =>
-            post.moveToTail( true, newGroup )
-            all.pre.foreach( _.moveBefore( true, post ))
+            post.moveToTail( audible = true, newGroup )
+            all.pre.foreach( _.moveBefore( audible = true, post ))
          } getOrElse {
-            all.pre.foreach( _.moveToTail( true, newGroup ))
+            all.pre.foreach( _.moveToTail( audible = true, newGroup ))
          }
       }
       all.back.foreach( _.moveToHeadIfOnline( newGroup )) // ifOnline !
@@ -338,7 +338,7 @@ extends Proc {
    def sendToBack( xfade: XFade )( implicit tx: ProcTxn ) {
       runningRef() foreach { r =>
          if( !xfade.isMarked( this )) {
-            stop( true )
+            stop( replay = true )
 //            createBackground( xfade, false )
 //         play
          }
@@ -402,7 +402,7 @@ extends Proc {
    }
 
    def stop( implicit tx: ProcTxn ) {
-      stop( false )
+      stop( replay = false )
    }
 
    private def stop( replay: Boolean )( implicit tx: ProcTxn ) {
@@ -411,7 +411,7 @@ extends Proc {
          tx.transit match {
             case xfade: XFade => {
                xfade.markSendToBack( this, replay )
-               createBackground( xfade, false )   // ok to do this repeatedly (might be even necessary)
+               createBackground( xfade, dispose = false )   // ok to do this repeatedly (might be even necessary)
             }
             case _ =>
          }

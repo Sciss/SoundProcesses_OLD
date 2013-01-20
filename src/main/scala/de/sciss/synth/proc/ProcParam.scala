@@ -2,7 +2,7 @@
  *  ProcParam.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -25,12 +25,9 @@
 
 package de.sciss.synth.proc
 
-import de.sciss.synth.ugen.{Out, In}
+import de.sciss.synth.ugen.In
 import de.sciss.synth.{UGenSource, GE}
 
-/**
- *    @version 0.12, 01-Jul-10
- */
 sealed trait ProcParam {
 //   type t = T
    def name : String

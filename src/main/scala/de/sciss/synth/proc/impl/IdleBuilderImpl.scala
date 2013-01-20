@@ -30,7 +30,7 @@ extends EntryBuilderImpl {
             case x => println( "Ooops. what parameter is this? " + x ) // scalac doesn't check exhaustion...
          })
 
-         /* val (target, addAction) = */ p.runningTarget( true )  // 'true' so that we have a stable group for internal graphs
+         /* val (target, addAction) = */ p.runningTarget( requireGroup = true )  // 'true' so that we have a stable group for internal graphs
 //         val accMap: Map[ String, AudioBusPlayerImpl ] = accessories.map( fun => {
 //            val abp = fun( rs )
 //            abp.player.play // stop is in RunningGraphImpl

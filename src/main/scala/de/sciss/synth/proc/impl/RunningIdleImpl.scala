@@ -2,7 +2,7 @@
  *  RunningIdleImpl.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -25,8 +25,8 @@
 
 package de.sciss.synth.proc.impl
 
-import de.sciss.synth.proc.{ ControlValue, Glide, Instant, ProcAudioBus, ProcControl, ProcRunning, ProcTxn, Ref,
-   RichAudioBus, RichGroup, RichNode, RichSynth, XFade }
+import de.sciss.synth.proc.{ ControlValue, ProcAudioBus, ProcControl, ProcRunning, ProcTxn, Ref,
+   RichAudioBus, RichGroup, RichNode}
 import sys.error
 
 /**
@@ -40,7 +40,7 @@ extends ProcRunning {
 
    def anchorNode( implicit tx: ProcTxn ) : RichNode = anchorRef()
 
-   def stop( implicit tx: ProcTxn ) = {
+   def stop( implicit tx: ProcTxn ) {
 //      tx transit match {
 //         case Instant      => rs.free()
 //         case glide: Glide => error( "NOT YET SUPPORTED" )

@@ -2,7 +2,7 @@
  *  ProcRunning.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -25,9 +25,6 @@
 
 package de.sciss.synth.proc
 
-/**
- *    @version 0.11, 03-Aug-10
- */
 trait ProcRunning {
    def stop( implicit tx: ProcTxn ) : Unit
    def busChanged( pbus: ProcAudioBus, newBus: Option[ RichAudioBus ])( implicit tx: ProcTxn ) : Unit

@@ -2,7 +2,7 @@
  *  ProcWorld.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -175,9 +175,9 @@ object ProcDemiurg extends TxnModel[ ProcDemiurgUpdate ] { // ( val server: Serv
                case Some( g2 ) => {
 //                  tx.addFirst( g.server, g.moveAfterMsg( pred ))
                   if( isAfter ) {
-                     g2.moveAfter( true, pred )
+                     g2.moveAfter( audible = true, pred )
                   } else {
-                     g2.moveBefore( true, pred )
+                     g2.moveBefore( audible = true, pred )
                   }
                   succ = g2
                }

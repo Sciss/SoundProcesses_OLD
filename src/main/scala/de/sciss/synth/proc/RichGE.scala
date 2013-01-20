@@ -2,7 +2,7 @@
  *  RichGE.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -30,8 +30,6 @@ import impl.SynthReactionImpl
 
 /**
  * Enrichment for graph elements.
- *
- * @version 0.10, 29-Aug-10
  */
 class RichGE( ge: GE ) {
    /**

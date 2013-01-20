@@ -2,7 +2,7 @@
  *  ProcTxn.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -27,12 +27,13 @@ package de.sciss.synth.proc
 
 import de.sciss.osc
 import collection.immutable.{ IndexedSeq => IIdxSeq, IntMap, Queue => IQueue }
-import collection.{ breakOut }
+import collection.breakOut
 import de.sciss.synth.{osc => sosc}
-import actors.{DaemonActor, Futures}
+import actors.DaemonActor
 import concurrent.stm.{InTxnEnd, TxnExecutor, Txn, InTxn}
 import sys.error
 import de.sciss.synth.Server
+import util.control.NonFatal
 
 trait ProcTxn {
    import ProcTxn._
@@ -75,7 +76,7 @@ object ProcTxn {
             case Fun( f ) => try {
                f()
             } catch {
-               case e =>
+               case NonFatal( e ) =>
                   println( "Exception in ProcTxn.spawnAtomic:" )
                   e.printStackTrace()
             }
@@ -180,15 +181,34 @@ val server = Server.default // XXX vergación
                val syncID     = syncMsg.id
 //               val bndl       = osc.Bundle( msgs.enqueue( syncMsg ): _* )
                val bndl       = osc.Bundle.now( (msgs :+ syncMsg): _* )
-               val fut        = server !! (bndl, { case sosc.SyncedMessage( `syncID` ) => true })
-               // XXX should use heuristic for timeouts
-               Futures.awaitAll( 10000L, fut ) match {
-                  case List( Some( true )) =>
-                  case _ =>
-                     fut.revoke()
+               var timeOut    = false
+               val sync       = new AnyRef
+               server !? (10000L, bndl, {
+                  case sosc.SyncedMessage( `syncID` ) =>
+                     sync.synchronized {
+                        sync.notifyAll()
+                     }
+                  case sosc.TIMEOUT =>
+                     sync.synchronized {
+                        timeOut = true
+                        sync.notifyAll()
+                     }
+               })
+               sync.synchronized {
+                  sync.wait()
+                  if( timeOut ) {
                      timeoutFun()
                      error( "Timeout" )
+                  }
                }
+//
+//               // XXX should use heuristic for timeouts
+//               Futures.awaitAll( 10000L, fut ) match {
+//                  case List( Some( true )) =>
+//                  case _ =>
+//                     fut.revoke()
+//               }
+
             } else {
 //               players.foreach( _.play( tx )) // XXX good spot?
                server ! osc.Bundle.now( msgs: _* ) // XXX eventually audible could have a bundle time
@@ -208,7 +228,7 @@ val server = Server.default // XXX vergación
             }
          })
          datas.foreach( data => {
-            data.firstAbortFuns.foreach( fun => try { fun() } catch { case e => e.printStackTrace() })
+            data.firstAbortFuns.foreach( fun => try { fun() } catch { case NonFatal( e ) => e.printStackTrace() })
          })
       }
 

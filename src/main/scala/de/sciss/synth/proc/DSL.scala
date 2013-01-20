@@ -2,7 +2,7 @@
  *  DSL.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -26,9 +26,8 @@
 package de.sciss.synth.proc
 
 import java.io.IOException
-import de.sciss.synth.GE
+import de.sciss.synth.{GraphFunction, GE}
 import de.sciss.synth.io.{SampleFormat, AudioFileType, AudioFileSpec}
-import de.sciss.synth.aux.GraphFunction
 import de.sciss.synth.ugen.In
 import sys.error
 

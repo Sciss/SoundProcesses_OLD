@@ -2,7 +2,7 @@
  *  ProcTransport.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -25,21 +25,18 @@
 
 package de.sciss.synth.proc
 
-import collection.mutable.{ PriorityQueue }
 import math._
 import actors.{ DaemonActor, TIMEOUT }
+import collection.mutable
 
-/**
- *    @version 0.11, 03-Jun-10
- */
 trait ProcTransport {
 //   def play( obj: ProcSched ) : Unit
    def sampleRate: Double
    def tickFrames: Int
    def sched( obj: ProcSched, pos: Long, latency: Int = 0 ) : Unit
-   def play : Unit // = play( 0L )
-   def play( offset: Long ) : Unit
-   def stop : Unit
+//   def play() : Unit // = play( 0L )
+   def play( offset: Long = 0L ) : Unit
+   def stop() : Unit
 }
 
 trait ProcSched {
@@ -72,9 +69,9 @@ object ProcTransport {
          this ! Sched( obj, pos, latency )
       }
 
-      def play { play( 0L )}
-      def play( offset: Long ) { trnsp ! Play( offset )}
-      def stop { trnsp ! Stop }
+//      def play() { play( 0L )}
+      def play( offset: Long = 0L ) { trnsp ! Play( offset )}
+      def stop() { trnsp ! Stop }
 
 //      def addPlayer( player: Player ) {
 //         players.synchronized {
@@ -88,7 +85,7 @@ object ProcTransport {
 //         }
 //      }
 
-      private val queue = new PriorityQueue[ Executable ]()( ExecutableOrdering )
+      private val queue = new mutable.PriorityQueue[ Executable ]()( ExecutableOrdering )
 
       def act() { loop { react {
          case Play( offset ) => {

@@ -2,7 +2,7 @@
  *  Ref.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -130,7 +130,7 @@ object Ref {
       }
    }
 
-   private class ObserverImpl[ T ]( _c: CRef[ T ], fun: Function2[ T, T, Unit ])
+   private class ObserverImpl[ T ]( _c: CRef[ T ], fun: (T, T) => Unit)
    extends TouchImpl( _c ) {
       protected def touched( tx: ProcTxn ) {
          val t = tx.ccstm

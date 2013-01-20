@@ -2,7 +2,7 @@
  *  SynthReactionImpl.scala
  *  (SoundProcesses)
  *
- *  Copyright (c) 2010-2012 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2010-2013 Hanns Holger Rutz. All rights reserved.
  *
  *  This software is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -53,7 +53,7 @@ extends ProcSynthReaction {
 
    private[proc] def create( rs: RichSynth )( implicit tx: ProcTxn ) : TxnPlayer = {
       val nodeID     = rs.node.id
-      val resp       = sosc.Responder {
+      val resp       = sosc.Responder( rs.server ) {
          case Message( "/$react", `nodeID`, `replyID`, floats @ _* ) => {
             val doubles = floats.map( _.asInstanceOf[ Float ].toDouble )
             fun( doubles )
@@ -70,10 +70,10 @@ extends ProcSynthReaction {
       val playingRef = Ref.withCheck( false ) {
          case ply => if( ply ) {
 //println( "---ADD" )
-            resp.add
+            resp.add()
          } else {
 //println( "---REMOVE" )
-            resp.remove
+            resp.remove()
          }
       }
 
